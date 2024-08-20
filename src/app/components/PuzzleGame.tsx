@@ -180,7 +180,7 @@ const PuzzleGame: React.FC = () => {
           {showModal && (
             <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center">
               <div className="bg-white p-6 rounded-lg text-center">
-                <h2 className="text-2xl font-bold mb-4">Hooray! You have solved it!</h2>
+                <h2 className="text-2xl font-bold mb-4">Hooray! You have solvede it!</h2>
                 <p className="text-lg mb-4">{playerName}, you won in {movesCount} moves!</p>
                 <button onClick={resetGame} className="bg-blue-500 text-white px-4 py-2 rounded-full">
                   Play Again
