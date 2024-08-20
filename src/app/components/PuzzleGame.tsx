@@ -1,12 +1,20 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const PuzzleGame: React.FC = () => {
-  const [imagesArr, setImagesArr] = useState<number[]>([]);
+  // Allow nulls in the arrays
+  const [piecesArr, setPiecesArr] = useState<(number | null)[]>([]);
+  const [placedPiecesArr, setPlacedPiecesArr] = useState<(number | null)[]>(Array(4).fill(null));
   const [movesCount, setMovesCount] = useState(0);
   const [playerName, setPlayerName] = useState("");
   const [inputName, setInputName] = useState("");
   const [showModal, setShowModal] = useState(false);
+
+  useEffect(() => {
+    if (playerName) {
+      randomPieces();
+    }
+  }, [playerName]);
 
   const shuffleArray = (array: number[]) => {
     for (let i = array.length - 1; i > 0; i--) {
@@ -15,65 +23,94 @@ const PuzzleGame: React.FC = () => {
     }
   };
 
-  const randomImages = () => {
-    const tempArr = Array.from({ length: 8 }, (_, i) => i + 1);
+  const randomPieces = () => {
+    const tempArr = Array.from({ length: 4 }, (_, i) => i + 1);
     shuffleArray(tempArr);
-    tempArr.push(9); // The 9 represents the empty space
-    setImagesArr(tempArr);
+    setPiecesArr(tempArr);
   };
 
-  const getCoords = (index: number): [number, number] => {
-    return [Math.floor(index / 3), index % 3];
+  const checkWinCondition = (arr: (number | null)[]) => {
+    console.log("Checking win condition:", arr.join(""));
+    return arr.join("") === "4321";
   };
 
-  const checkAdjacent = (index1: number, index2: number): boolean => {
-    const [row1, col1] = getCoords(index1);
-    const [row2, col2] = getCoords(index2);
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>, targetIndex: number) => {
+    e.preventDefault();
+    const draggedIndex = Number(e.dataTransfer.getData("text/plain"));
+    const draggedFromScattered = e.dataTransfer.getData("from") === "scattered";
+    const newArr = [...placedPiecesArr];
 
-    if (row1 === row2) {
-      return col2 === col1 - 1 || col2 === col1 + 1;
-    } else if (col1 === col2) {
-      return row2 === row1 - 1 || row2 === row1 + 1;
-    }
-    return false;
-  };
+    if (draggedFromScattered) {
+      const draggedPiece = piecesArr[draggedIndex];
+      if (!newArr[targetIndex]) {
+        newArr[targetIndex] = draggedPiece;
+        const updatedPiecesArr = [...piecesArr];
+        updatedPiecesArr[draggedIndex] = null;
 
-  const handleClick = (index: number) => {
-    const emptyIndex = imagesArr.indexOf(9);
-
-    if (checkAdjacent(index, emptyIndex)) {
-      const newArr = [...imagesArr];
-      [newArr[index], newArr[emptyIndex]] = [newArr[emptyIndex], newArr[index]];
-
-      setImagesArr(newArr);
-      setMovesCount(movesCount + 1);
-
-      // Check win condition
-      if (newArr.join('') === '123456789') {
-        setTimeout(() => {
-          setShowModal(true);
-        }, 500);
+        setPiecesArr(updatedPiecesArr);
+        setPlacedPiecesArr(newArr);
+        setMovesCount(movesCount + 1);
       }
+    } else {
+      const targetPiece = newArr[targetIndex];
+      newArr[targetIndex] = newArr[draggedIndex];
+      newArr[draggedIndex] = targetPiece;
+      setPlacedPiecesArr(newArr);
+      setMovesCount(movesCount + 1);
+    }
+
+    console.log("Placed pieces array after drop:", newArr);
+
+    // Check win condition
+    if (checkWinCondition(newArr)) {
+      console.log("Win condition met!");
+      setTimeout(() => {
+        setShowModal(true);
+      }, 500);
+    }
+  };
+
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number, from: string) => {
+    e.dataTransfer.setData("text/plain", index.toString());
+    e.dataTransfer.setData("from", from);
+  };
+
+  const handleScatteredDrop = (e: React.DragEvent<HTMLDivElement>, targetIndex: number) => {
+    e.preventDefault();
+    const draggedIndex = Number(e.dataTransfer.getData("text/plain"));
+    const draggedFromGrid = e.dataTransfer.getData("from") === "grid";
+    const newArr = [...piecesArr];
+
+    if (draggedFromGrid) {
+      const draggedPiece = placedPiecesArr[draggedIndex];
+      if (!newArr[targetIndex]) {
+        newArr[targetIndex] = draggedPiece;
+        const updatedPlacedArr = [...placedPiecesArr];
+        updatedPlacedArr[draggedIndex] = null;
+
+        setPiecesArr(newArr);
+        setPlacedPiecesArr(updatedPlacedArr);
+        setMovesCount(movesCount + 1);
+      }
+    }
+  };
+
+  const handleNameSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (inputName.trim()) {
+      setPlayerName(inputName);
     }
   };
 
   const resetGame = () => {
     setMovesCount(0);
-    randomImages();
+    randomPieces();
+    setPlacedPiecesArr(Array(4).fill(null));
     setShowModal(false);
   };
 
-  const handleNameSubmit = (e: React.FormEvent) => {
-    e.preventDefault(); // Prevent default form submission behavior
-    console.log("Player Name Submitted:", inputName); // Debugging to ensure the name is captured
-    if (inputName.trim()) {
-      setPlayerName(inputName); // Set the player name state
-      randomImages(); // Initialize the game
-    }
-  };
-
   return (
-    <div className="w-full flex flex-col items-center justify-center min-h-screen bg-black">
+    <div className="w-full flex flex-col items-center justify-center min-h-screen bg-gray-900">
       {!playerName ? (
         <form onSubmit={handleNameSubmit} className="text-center">
           <label className="text-white text-lg mb-2 block">
@@ -95,25 +132,54 @@ const PuzzleGame: React.FC = () => {
         </form>
       ) : (
         <>
-          <div className="container grid grid-cols-3 grid-rows-3 gap-2 w-64 h-64">
-            {imagesArr.map((img, index) => (
-              <div
-                key={index}
-                onClick={() => handleClick(index)}
-                className="border border-white cursor-pointer image-container"
-              >
-                {img !== 9 ? (
-                  <img
-                    src={`/image_part_00${img}.png`}
-                    className="w-full h-full"
-                    alt={`Part ${img}`}
-                  />
+          <div className="relative flex flex-wrap items-center justify-center">
+            {/* Scattered Pieces */}
+            <div className="flex flex-wrap gap-4 p-4">
+              {piecesArr.map((img, index) =>
+                img !== null ? (
+                  <div
+                    key={index}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, index, "scattered")}
+                    onDrop={(e) => handleScatteredDrop(e, index)}
+                    onDragOver={(e) => e.preventDefault()}
+                    className="border border-white cursor-pointer w-24 h-24"
+                  >
+                    <img
+                      src={`/img_00${img}.png`}
+                      className="w-full h-full"
+                      alt={`Part ${img}`}
+                    />
+                  </div>
                 ) : (
-                  <div className="w-full h-full bg-black"></div>
-                )}
-              </div>
-            ))}
+                  <div key={index} className="w-24 h-24"></div>
+                )
+              )}
+            </div>
+
+            {/* Grid to Place Pieces */}
+            <div className="grid grid-cols-2 grid-rows-2 p-4 border border-white bg-black">
+              {placedPiecesArr.map((img, index) => (
+                <div
+                  key={index}
+                  draggable={!!img}
+                  onDragStart={(e) => handleDragStart(e, index, "grid")}
+                  onDrop={(e) => handleDrop(e, index)}
+                  onDragOver={(e) => e.preventDefault()}
+                  className={`border border-white w-24 h-24 ${!img ? 'bg-black' : ''}`}
+                >
+                  {img && (
+                    <img
+                      src={`/img_00${img}.png`}
+                      className="w-full h-full"
+                      alt={`Part ${img}`}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
+
           <p className="mt-4 text-lg text-white">Moves: {movesCount}</p>
           <button
             onClick={resetGame}
@@ -125,7 +191,7 @@ const PuzzleGame: React.FC = () => {
           {showModal && (
             <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center">
               <div className="bg-white p-6 rounded-lg text-center">
-                <h2 className="text-2xl font-bold mb-4">Hooray!</h2>
+                <h2 className="text-2xl font-bold mb-4">Hooray! You have solved it!</h2>
                 <p className="text-lg mb-4">
                   {playerName}, you won in {movesCount} moves!
                 </p>
