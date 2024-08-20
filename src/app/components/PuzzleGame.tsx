@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from "react";
 
 const PuzzleGame: React.FC = () => {
-  // Allow nulls in the arrays
   const [piecesArr, setPiecesArr] = useState<(number | null)[]>([]);
   const [placedPiecesArr, setPlacedPiecesArr] = useState<(number | null)[]>(Array(4).fill(null));
   const [movesCount, setMovesCount] = useState(0);
@@ -30,17 +29,13 @@ const PuzzleGame: React.FC = () => {
   };
 
   const checkWinCondition = (arr: (number | null)[]) => {
-    console.log("Checking win condition:", arr.join(""));
     return arr.join("") === "4321";
   };
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>, targetIndex: number) => {
-    e.preventDefault();
-    const draggedIndex = Number(e.dataTransfer.getData("text/plain"));
-    const draggedFromScattered = e.dataTransfer.getData("from") === "scattered";
+  const handleDrop = (targetIndex: number, draggedIndex: number, from: string) => {
     const newArr = [...placedPiecesArr];
 
-    if (draggedFromScattered) {
+    if (from === "scattered") {
       const draggedPiece = piecesArr[draggedIndex];
       if (!newArr[targetIndex]) {
         newArr[targetIndex] = draggedPiece;
@@ -59,29 +54,81 @@ const PuzzleGame: React.FC = () => {
       setMovesCount(movesCount + 1);
     }
 
-    console.log("Placed pieces array after drop:", newArr);
-
-    // Check win condition
     if (checkWinCondition(newArr)) {
-      console.log("Win condition met!");
       setTimeout(() => {
         setShowModal(true);
       }, 500);
     }
   };
 
-  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number, from: string) => {
-    e.dataTransfer.setData("text/plain", index.toString());
-    e.dataTransfer.setData("from", from);
+  const handleDragStart = (
+    e: React.DragEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>,
+    index: number,
+    from: string
+  ) => {
+    if (e.type === "dragstart") {
+      (e as React.DragEvent).dataTransfer.setData("text/plain", index.toString());
+      (e as React.DragEvent).dataTransfer.setData("from", from);
+    } else {
+      const touch = (e as React.TouchEvent).touches[0];
+      const data = JSON.stringify({ index, from });
+      (e.target as HTMLElement).setAttribute("data-drag", data);
+    }
   };
 
-  const handleScatteredDrop = (e: React.DragEvent<HTMLDivElement>, targetIndex: number) => {
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
     e.preventDefault();
-    const draggedIndex = Number(e.dataTransfer.getData("text/plain"));
-    const draggedFromGrid = e.dataTransfer.getData("from") === "grid";
+    const touch = e.touches[0];
+    const element = document.elementFromPoint(touch.clientX, touch.clientY) as HTMLElement;
+    const dragData = (e.target as HTMLElement).getAttribute("data-drag");
+
+    if (element && dragData) {
+      const { index, from } = JSON.parse(dragData);
+      element.addEventListener(
+        "touchend",
+        () => {
+          if (element.getAttribute("data-drop-index")) {
+            const targetIndex = parseInt(element.getAttribute("data-drop-index") || "0", 10);
+            handleDrop(targetIndex, index, from);
+          }
+        },
+        { once: true }
+      );
+    }
+  };
+
+  const handleDropEvent = (
+    e: React.DragEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>,
+    targetIndex: number
+  ) => {
+    e.preventDefault();
+    if (e.type === "drop") {
+      const draggedIndex = Number((e as React.DragEvent).dataTransfer.getData("text/plain"));
+      const draggedFrom = (e as React.DragEvent).dataTransfer.getData("from");
+      handleDrop(targetIndex, draggedIndex, draggedFrom);
+    } else {
+      const dragData = (e.target as HTMLElement).getAttribute("data-drag");
+      if (dragData) {
+        const { index, from } = JSON.parse(dragData);
+        handleDrop(targetIndex, index, from);
+      }
+    }
+  };
+
+  const handleScatteredDrop = (
+    e: React.DragEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>,
+    targetIndex: number
+  ) => {
+    e.preventDefault();
+    const draggedIndex = e.type === "drop"
+      ? Number((e as React.DragEvent).dataTransfer.getData("text/plain"))
+      : Number(JSON.parse((e.target as HTMLElement).getAttribute("data-drag") || "{}").index);
+    const draggedFrom = e.type === "drop"
+      ? (e as React.DragEvent).dataTransfer.getData("from")
+      : JSON.parse((e.target as HTMLElement).getAttribute("data-drag") || "{}").from;
     const newArr = [...piecesArr];
 
-    if (draggedFromGrid) {
+    if (draggedFrom === "grid") {
       const draggedPiece = placedPiecesArr[draggedIndex];
       if (!newArr[targetIndex]) {
         newArr[targetIndex] = draggedPiece;
@@ -141,6 +188,8 @@ const PuzzleGame: React.FC = () => {
                     key={index}
                     draggable
                     onDragStart={(e) => handleDragStart(e, index, "scattered")}
+                    onTouchStart={(e) => handleDragStart(e, index, "scattered")}
+                    onTouchMove={handleTouchMove}
                     onDrop={(e) => handleScatteredDrop(e, index)}
                     onDragOver={(e) => e.preventDefault()}
                     className="border border-white cursor-pointer w-24 h-24"
@@ -164,9 +213,12 @@ const PuzzleGame: React.FC = () => {
                   key={index}
                   draggable={!!img}
                   onDragStart={(e) => handleDragStart(e, index, "grid")}
-                  onDrop={(e) => handleDrop(e, index)}
+                  onTouchStart={(e) => handleDragStart(e, index, "grid")}
+                  onTouchMove={handleTouchMove}
+                  onDrop={(e) => handleDropEvent(e, index)}
                   onDragOver={(e) => e.preventDefault()}
                   className={`border border-white w-24 h-24 ${!img ? 'bg-black' : ''}`}
+                  data-drop-index={index}
                 >
                   {img && (
                     <img
