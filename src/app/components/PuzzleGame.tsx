@@ -9,6 +9,7 @@ const PuzzleGame: React.FC = () => {
   const [inputName, setInputName] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [draggedPieceInfo, setDraggedPieceInfo] = useState<{ index: number; from: string } | null>(null);
+  const [draggingElement, setDraggingElement] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
     if (playerName) {
@@ -41,7 +42,11 @@ const PuzzleGame: React.FC = () => {
       } else if (from === "grid") {
         movePiece(placedPiecesArr, setPlacedPiecesArr, placedPiecesArr, setPlacedPiecesArr, draggedIndex, targetIndex);
       }
-      setDraggedPieceInfo(null); // Reset after drop
+      setDraggedPieceInfo(null);
+      if (draggingElement) {
+        draggingElement.style.display = "none";
+        setDraggingElement(null);
+      }
     }
   };
 
@@ -54,24 +59,21 @@ const PuzzleGame: React.FC = () => {
     targetIndex: number
   ) => {
     const sourcePiece = sourceArray[draggedIndex];
-    if (sourcePiece === null) return; // Avoid moving empty spots
+    if (sourcePiece === null) return;
 
     const targetPiece = targetArray[targetIndex];
     const newSourceArray = [...sourceArray];
     const newTargetArray = [...targetArray];
 
     if (sourceArray === targetArray) {
-      // Rearranging within the same section
       newSourceArray[draggedIndex] = targetPiece;
       newSourceArray[targetIndex] = sourcePiece;
       setSourceArray(newSourceArray);
     } else {
-      // Moving between sections
       if (targetPiece === null) {
         newSourceArray[draggedIndex] = null;
         newTargetArray[targetIndex] = sourcePiece;
       } else {
-        // Swap pieces if the target is already occupied
         newSourceArray[draggedIndex] = targetPiece;
         newTargetArray[targetIndex] = sourcePiece;
       }
@@ -92,8 +94,29 @@ const PuzzleGame: React.FC = () => {
     setDraggedPieceInfo({ index, from });
   };
 
-  const handleTouchStart = (index: number, from: string) => {
+  const handleTouchStart = (index: number, from: string, e: React.TouchEvent<HTMLDivElement>) => {
     setDraggedPieceInfo({ index, from });
+
+    const touch = e.touches[0];
+    const element = e.currentTarget;
+
+    const draggingEl = element.cloneNode(true) as HTMLElement;
+    draggingEl.style.position = "absolute";
+    draggingEl.style.pointerEvents = "none";
+    draggingEl.style.left = `${touch.clientX - element.offsetWidth / 2}px`;
+    draggingEl.style.top = `${touch.clientY - element.offsetHeight / 2}px`;
+    draggingEl.style.zIndex = "1000";
+    draggingEl.style.opacity = "0.8";
+    document.body.appendChild(draggingEl);
+    setDraggingElement(draggingEl);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (draggingElement) {
+      const touch = e.touches[0];
+      draggingElement.style.left = `${touch.clientX - draggingElement.offsetWidth / 2}px`;
+      draggingElement.style.top = `${touch.clientY - draggingElement.offsetHeight / 2}px`;
+    }
   };
 
   const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>, targetIndex: number) => {
@@ -141,7 +164,8 @@ const PuzzleGame: React.FC = () => {
                     key={index}
                     draggable
                     onDragStart={() => handleDragStart(index, "scattered")}
-                    onTouchStart={() => handleTouchStart(index, "scattered")}
+                    onTouchStart={(e) => handleTouchStart(index, "scattered", e)}
+                    onTouchMove={handleTouchMove}
                     onTouchEnd={(e) => handleTouchEnd(e, index)}
                     className="border border-white cursor-pointer w-24 h-24"
                   >
@@ -162,7 +186,8 @@ const PuzzleGame: React.FC = () => {
                   onDragStart={() => handleDragStart(index, "grid")}
                   onDrop={() => handleDrop(index)}
                   onDragOver={(e) => e.preventDefault()}
-                  onTouchStart={() => handleTouchStart(index, "grid")}
+                  onTouchStart={(e) => handleTouchStart(index, "grid", e)}
+                  onTouchMove={handleTouchMove}
                   onTouchEnd={(e) => handleTouchEnd(e, index)}
                   className={`border border-white w-24 h-24 ${!img ? "bg-black" : ""}`}
                 >
@@ -180,7 +205,7 @@ const PuzzleGame: React.FC = () => {
           {showModal && (
             <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center">
               <div className="bg-white p-6 rounded-lg text-center">
-                <h2 className="text-2xl font-bold mb-4">Hooray! You have solvede it!</h2>
+                <h2 className="text-2xl font-bold mb-4">Hooray! You have solved as it!</h2>
                 <p className="text-lg mb-4">{playerName}, you won in {movesCount} moves!</p>
                 <button onClick={resetGame} className="bg-blue-500 text-white px-4 py-2 rounded-full">
                   Play Again
