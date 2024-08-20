@@ -9,7 +9,6 @@ const PuzzleGame: React.FC = () => {
   const [inputName, setInputName] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [draggedPieceInfo, setDraggedPieceInfo] = useState<{ index: number; from: string } | null>(null);
-  const [draggingElement, setDraggingElement] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
     if (playerName) {
@@ -43,10 +42,6 @@ const PuzzleGame: React.FC = () => {
         movePiece(placedPiecesArr, setPlacedPiecesArr, placedPiecesArr, setPlacedPiecesArr, draggedIndex, targetIndex);
       }
       setDraggedPieceInfo(null);
-      if (draggingElement) {
-        draggingElement.style.display = "none";
-        setDraggingElement(null);
-      }
     }
   };
 
@@ -96,27 +91,6 @@ const PuzzleGame: React.FC = () => {
 
   const handleTouchStart = (index: number, from: string, e: React.TouchEvent<HTMLDivElement>) => {
     setDraggedPieceInfo({ index, from });
-
-    const touch = e.touches[0];
-    const element = e.currentTarget;
-
-    const draggingEl = element.cloneNode(true) as HTMLElement;
-    draggingEl.style.position = "absolute";
-    draggingEl.style.pointerEvents = "none";
-    draggingEl.style.left = `${touch.clientX - element.offsetWidth / 2}px`;
-    draggingEl.style.top = `${touch.clientY - element.offsetHeight / 2}px`;
-    draggingEl.style.zIndex = "1000";
-    draggingEl.style.opacity = "0.8";
-    document.body.appendChild(draggingEl);
-    setDraggingElement(draggingEl);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (draggingElement) {
-      const touch = e.touches[0];
-      draggingElement.style.left = `${touch.clientX - draggingElement.offsetWidth / 2}px`;
-      draggingElement.style.top = `${touch.clientY - draggingElement.offsetHeight / 2}px`;
-    }
   };
 
   const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>, targetIndex: number) => {
@@ -138,26 +112,26 @@ const PuzzleGame: React.FC = () => {
   };
 
   return (
-    <div className="w-full flex flex-col items-center justify-center min-h-screen bg-gray-900">
+    <div className="w-full flex flex-col items-center justify-center min-h-screen bg-gray-800 p-4">
       {!playerName ? (
         <form onSubmit={handleNameSubmit} className="text-center">
-          <label className="text-white text-lg mb-2 block">Enter your name:</label>
+          <label className="text-white text-lg mb-4 block">Enter your name:</label>
           <input
             type="text"
             value={inputName}
             onChange={(e) => setInputName(e.target.value)}
-            className="px-4 py-2 rounded-lg text-black"
+            className="px-4 py-2 rounded-lg text-black w-full max-w-xs"
             required
           />
-          <button type="submit" className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-full">
+          <button type="submit" className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-full w-full max-w-xs">
             Start Game
           </button>
         </form>
       ) : (
         <>
-          <div className="relative flex flex-wrap items-center justify-center">
+          <div className="flex flex-col items-center w-full max-w-lg">
             {/* Scattered Pieces */}
-            <div className="flex flex-wrap gap-4 p-4">
+            <div className="flex flex-wrap gap-4 p-4 justify-center">
               {piecesArr.map((img, index) =>
                 img !== null ? (
                   <div
@@ -165,20 +139,19 @@ const PuzzleGame: React.FC = () => {
                     draggable
                     onDragStart={() => handleDragStart(index, "scattered")}
                     onTouchStart={(e) => handleTouchStart(index, "scattered", e)}
-                    onTouchMove={handleTouchMove}
                     onTouchEnd={(e) => handleTouchEnd(e, index)}
-                    className="border border-white cursor-pointer w-24 h-24"
+                    className="border border-white cursor-pointer w-20 h-20 md:w-24 md:h-24 rounded-lg bg-gray-700"
                   >
-                    <img src={`/img_00${img}.png`} className="w-full h-full" alt={`Part ${img}`} />
+                    <img src={`/img_00${img}.png`} className="w-full h-full rounded-lg" alt={`Part ${img}`} />
                   </div>
                 ) : (
-                  <div key={index} className="w-24 h-24"></div>
+                  <div key={index} className="w-20 h-20 md:w-24 md:h-24"></div>
                 )
               )}
             </div>
 
             {/* Grid to Place/Rearrange Pieces */}
-            <div className="grid grid-cols-2 grid-rows-2 p-4 border border-white bg-black">
+            <div className="grid grid-cols-2 grid-rows-2 gap-2 p-4 border border-white rounded-lg bg-black">
               {placedPiecesArr.map((img, index) => (
                 <div
                   key={index}
@@ -187,27 +160,26 @@ const PuzzleGame: React.FC = () => {
                   onDrop={() => handleDrop(index)}
                   onDragOver={(e) => e.preventDefault()}
                   onTouchStart={(e) => handleTouchStart(index, "grid", e)}
-                  onTouchMove={handleTouchMove}
                   onTouchEnd={(e) => handleTouchEnd(e, index)}
-                  className={`border border-white w-24 h-24 ${!img ? "bg-black" : ""}`}
+                  className={`border border-white w-20 h-20 md:w-24 md:h-24 rounded-lg ${!img ? "bg-gray-600" : ""}`}
                 >
-                  {img && <img src={`/img_00${img}.png`} className="w-full h-full" alt={`Part ${img}`} />}
+                  {img && <img src={`/img_00${img}.png`} className="w-full h-full rounded-lg" alt={`Part ${img}`} />}
                 </div>
               ))}
             </div>
           </div>
 
           <p className="mt-4 text-lg text-white">Moves: {movesCount}</p>
-          <button onClick={resetGame} className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-full">
+          <button onClick={resetGame} className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-full w-full max-w-xs">
             Restart Game
           </button>
 
           {showModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center">
-              <div className="bg-white p-6 rounded-lg text-center">
-                <h2 className="text-2xl font-bold mb-4">Hooray! You have solved as it!</h2>
+            <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4">
+              <div className="bg-white p-6 rounded-lg text-center max-w-xs w-full">
+                <h2 className="text-2xl font-bold mb-4">Congratulations!</h2>
                 <p className="text-lg mb-4">{playerName}, you won in {movesCount} moves!</p>
-                <button onClick={resetGame} className="bg-blue-500 text-white px-4 py-2 rounded-full">
+                <button onClick={resetGame} className="bg-blue-500 text-white px-4 py-2 rounded-full w-full">
                   Play Again
                 </button>
               </div>
