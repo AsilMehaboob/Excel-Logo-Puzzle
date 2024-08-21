@@ -1,11 +1,13 @@
+import dynamic from 'next/dynamic';
 
-import PuzzleGame from './components/PuzzleGame';
+const Puzzle = dynamic(() => import('./components/Game'), {
+  ssr: false, // Disable SSR for this component
+});
 
 const Home: React.FC = () => {
   return (
     <div>
-      <PuzzleGame />
-
+      <Puzzle />
     </div>
   );
 };
