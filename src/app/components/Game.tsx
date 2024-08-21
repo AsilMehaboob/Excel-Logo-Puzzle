@@ -49,6 +49,18 @@ const Puzzle = () => {
         puzzle.mouseReleased();
       };
 
+      p.touchStarted = () => {
+        p.mousePressed();
+      };
+
+      p.touchMoved = () => {
+        p.mouseDragged();
+      };
+
+      p.touchEnded = () => {
+        p.mouseReleased();
+      };
+
       p.windowResized = () => {
         p.resizeCanvas(p.windowWidth, p.windowHeight);
       };
