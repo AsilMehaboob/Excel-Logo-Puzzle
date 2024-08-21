@@ -29,7 +29,7 @@ const Puzzle = () => {
         canvas.parent(canvasRef.current!);
         let x0 = p.windowWidth / 2 - imgCb.width / 2;
         let y0 = p.windowHeight / 2 - imgCb.height / 2;
-        puzzle = new PuzzleGame(x0, y0, imgCb, 2); // Changed to 2x2 puzzle
+        puzzle = new PuzzleGame(x0, y0, imgCb, 2); // 2x2 puzzle
       };
 
       p.draw = () => {
@@ -39,26 +39,32 @@ const Puzzle = () => {
 
       p.mousePressed = () => {
         puzzle.mousePressed(p.mouseX, p.mouseY);
+        return false; // Prevent default behavior (optional)
       };
 
       p.mouseDragged = () => {
         puzzle.mouseDragged(p.mouseX, p.mouseY);
+        return false; // Prevent default behavior (optional)
       };
 
       p.mouseReleased = () => {
         puzzle.mouseReleased();
+        return false; // Prevent default behavior (optional)
       };
 
       p.touchStarted = () => {
         p.mousePressed();
+        return false; // Prevent default behavior
       };
 
       p.touchMoved = () => {
         p.mouseDragged();
+        return false; // Prevent default behavior
       };
 
       p.touchEnded = () => {
         p.mouseReleased();
+        return false; // Prevent default behavior
       };
 
       p.windowResized = () => {
@@ -70,7 +76,7 @@ const Puzzle = () => {
         private dragPiece: Piece | null = null;
         private isDragging = false;
         private canPlay = true;
-        private clickOffset: p5.Vector = new p5.Vector(0, 0); // Initialize clickOffset
+        private clickOffset: p5.Vector = new p5.Vector(0, 0);
         private w: number;
         private h: number;
 
