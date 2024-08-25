@@ -15,40 +15,52 @@ const Puzzle = () => {
 
   useEffect(() => {
     const sketch = (p: p5) => {
-      let puzzle: PuzzleGame;
-      let imgCb: p5.Image;
+      let puzzle: PuzzleGame | undefined;
+      let images: p5.Image[] = [];
+      let selectedImage: p5.Image;
+
+      // Array of local image paths
+      const customImages = [
+        "/images/image1.jpg",
+        "/images/image2.jpg"
+        
+      ];
 
       p.preload = () => {
-        imgCb = p.loadImage(
-          "https://s3-us-west-2.amazonaws.com/s.cdpn.io/15499/badge.png"
-        );
+        // Preload all images
+        customImages.forEach((url) => {
+          images.push(p.loadImage(url));
+        });
+
+        // Randomly select one image
+        selectedImage = images[Math.floor(Math.random() * images.length)];
       };
 
       p.setup = () => {
         const canvas = p.createCanvas(p.windowWidth, p.windowHeight);
         canvas.parent(canvasRef.current!);
-        let x0 = p.windowWidth / 2 - imgCb.width / 2;
-        let y0 = p.windowHeight / 2 - imgCb.height / 2;
-        puzzle = new PuzzleGame(x0, y0, imgCb, 2); // 2x2 puzzle
+        let x0 = p.windowWidth / 2 - selectedImage.width / 2;
+        let y0 = p.windowHeight / 2 - selectedImage.height / 2;
+        puzzle = new PuzzleGame(x0, y0, selectedImage, 2); // 2x2 puzzle
       };
 
       p.draw = () => {
         p.clear();
-        puzzle.draw();
+        puzzle?.draw();
       };
 
       p.mousePressed = () => {
-        puzzle.mousePressed(p.mouseX, p.mouseY);
+        puzzle?.mousePressed(p.mouseX, p.mouseY);
         return false; // Prevent default behavior (optional)
       };
 
       p.mouseDragged = () => {
-        puzzle.mouseDragged(p.mouseX, p.mouseY);
+        puzzle?.mouseDragged(p.mouseX, p.mouseY);
         return false; // Prevent default behavior (optional)
       };
 
       p.mouseReleased = () => {
-        puzzle.mouseReleased();
+        puzzle?.mouseReleased();
         return false; // Prevent default behavior (optional)
       };
 
