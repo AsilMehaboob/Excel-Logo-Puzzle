@@ -22,8 +22,10 @@ const Puzzle = () => {
       // Array of local image paths
       const customImages = [
         "/images/image1.jpg",
-        "/images/image2.jpg"
-        
+        "/images/image2.jpg",
+        "/images/image3.jpg",
+        "/images/image4.jpg",
+        "/images/image5.jpg",
       ];
 
       p.preload = () => {
@@ -39,6 +41,7 @@ const Puzzle = () => {
       p.setup = () => {
         const canvas = p.createCanvas(p.windowWidth, p.windowHeight);
         canvas.parent(canvasRef.current!);
+        p.windowResized(); // Call this to set the initial canvas size
         let x0 = p.windowWidth / 2 - selectedImage.width / 2;
         let y0 = p.windowHeight / 2 - selectedImage.height / 2;
         puzzle = new PuzzleGame(x0, y0, selectedImage, 2); // 2x2 puzzle
@@ -81,6 +84,7 @@ const Puzzle = () => {
 
       p.windowResized = () => {
         p.resizeCanvas(p.windowWidth, p.windowHeight);
+        // Optional: Adjust puzzle position on resize if needed
       };
 
       class PuzzleGame {
@@ -250,14 +254,16 @@ const Puzzle = () => {
   }, []);
 
   return (
-    <div ref={canvasRef} className="relative w-full h-screen bg-gray-900">
+    <div ref={canvasRef} className="relative w-full h-full bg-gray-900">
       {showModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75">
-          <div className="bg-white p-8 rounded-lg text-center">
-            <h1 className="text-4xl font-bold mb-4">Hooray! You have completed the puzzle!</h1>
+          <div className="bg-white p-6 sm:p-8 md:p-10 lg:p-12 xl:p-16 rounded-lg text-center max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
+              Hooray! You have completed the puzzle!
+            </h1>
             <button
               onClick={() => setShowModal(false)}
-              className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
+              className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-300"
             >
               Close
             </button>
