@@ -44,19 +44,12 @@ const Puzzle = () => {
       };
 
       p.setup = () => {
-        // Define bounding box dimensions and center it
-        const boxWidth = 400;
-        const boxHeight = 400;
-        const canvasWidth = p.windowWidth;
-        const canvasHeight = p.windowHeight;
-        const boxX = (canvasWidth - boxWidth) / 2;
-        const boxY = (canvasHeight - boxHeight) / 2;
-
-        const canvas = p.createCanvas(canvasWidth, canvasHeight);
+        const canvas = p.createCanvas(p.windowWidth, p.windowHeight);
         canvas.parent(canvasRef.current!);
-
-        // Initialize the puzzle game with the bounding box dimensions
-        puzzle = new PuzzleGame(boxX, boxY, boxWidth, boxHeight, images, 2); // 2x2 puzzle
+        p.windowResized(); // Call this to set the initial canvas size
+        let x0 = p.windowWidth / 2 - images[0].width / 2;
+        let y0 = p.windowHeight / 2 - images[0].height / 2;
+        puzzle = new PuzzleGame(x0, y0, images, 2); // 2x2 puzzle
       };
 
       p.draw = () => {
@@ -95,15 +88,8 @@ const Puzzle = () => {
       };
 
       p.windowResized = () => {
-        const canvasWidth = p.windowWidth;
-        const canvasHeight = p.windowHeight;
-        const boxWidth = 400;
-        const boxHeight = 400;
-        const boxX = (canvasWidth - boxWidth) / 2;
-        const boxY = (canvasHeight - boxHeight) / 2;
-
-        p.resizeCanvas(canvasWidth, canvasHeight);
-        puzzle?.updatePosition(boxX, boxY, boxWidth, boxHeight);
+        p.resizeCanvas(p.windowWidth, p.windowHeight);
+        // Optional: Adjust puzzle position on resize if needed
       };
 
       class PuzzleGame {
@@ -112,56 +98,37 @@ const Puzzle = () => {
         private isDragging = false;
         private canPlay = true;
         private clickOffset: p5.Vector = new p5.Vector(0, 0);
-        private x: number;
-        private y: number;
-        private boxWidth: number;
-        private boxHeight: number;
+        private w: number;
+        private h: number;
 
         constructor(
-          x: number,
-          y: number,
-          boxWidth: number,
-          boxHeight: number,
+          private x: number,
+          private y: number,
           private imgs: p5.Image[],
           private side: number
         ) {
-          this.x = x;
-          this.y = y;
-          this.boxWidth = boxWidth;
-          this.boxHeight = boxHeight;
+          this.w = imgs[0].width;
+          this.h = imgs[0].height;
           this.placePieces(imgs);
         }
 
         private placePieces(imgs: p5.Image[]) {
-          // Calculate the size of each piece based on the bounding box size and puzzle dimensions
-          const pieceWidth = this.boxWidth / this.side;
-          const pieceHeight = this.boxHeight / this.side;
-
-          // Resize images to fit within each puzzle piece
-          imgs.forEach((img) => {
-            img.resize(pieceWidth, pieceHeight);
-          });
-
           for (let i = 0; i < this.side * this.side; i++) {
-            let pos = this.randomPos(pieceWidth, pieceHeight);
+            let pos = this.randomPos(this.w, this.h);
             this.pieces.push({ pos, img: imgs[i], i });
           }
         }
 
-        private randomPos(pieceWidth: number, pieceHeight: number) {
+        private randomPos(marginRight: number, marginBottom: number) {
           return p.createVector(
-            p.random(this.x, this.x + this.boxWidth - pieceWidth),
-            p.random(this.y, this.y + this.boxHeight - pieceHeight)
+            p.random(0, p.windowWidth - marginRight),
+            p.random(0, p.windowHeight - marginBottom)
           );
         }
 
         public draw() {
-          // Draw the bounding box centered on the canvas
+          p.rect(this.x - 1, this.y - 1, this.w * this.side + 1, this.h * this.side + 1);
           p.noFill();
-          p.stroke(255);
-          p.rect(this.x, this.y, this.boxWidth, this.boxHeight);
-
-          // Draw the pieces
           this.pieces.forEach((r) => p.image(r.img, r.pos.x, r.pos.y));
         }
 
@@ -184,13 +151,11 @@ const Puzzle = () => {
         }
 
         private hits(p: Piece, hitpos: p5.Vector) {
-          const pieceWidth = this.boxWidth / this.side;
-          const pieceHeight = this.boxHeight / this.side;
           return (
             hitpos.x > p.pos.x &&
-            hitpos.x < p.pos.x + pieceWidth &&
+            hitpos.x < p.pos.x + this.w &&
             hitpos.y > p.pos.y &&
-            hitpos.y < p.pos.y + pieceHeight
+            hitpos.y < p.pos.y + this.h
           );
         }
 
@@ -217,26 +182,28 @@ const Puzzle = () => {
         }
 
         private snapTo(p: Piece) {
-          const pieceWidth = this.boxWidth / this.side;
-          const pieceHeight = this.boxHeight / this.side;
-          for (let y = this.y; y < this.y + this.boxHeight; y += pieceHeight) {
-            for (let x = this.x; x < this.x + this.boxWidth; x += pieceWidth) {
-              if (this.shouldSnapToX(p, x, pieceWidth, pieceHeight, this.y + this.boxHeight)) {
+          let dx = this.w / 2;
+          let dy = this.h / 2;
+          let x2 = this.x + this.w * this.side;
+          let y2 = this.y + this.h * this.side;
+          for (let y = this.y; y < y2; y += this.h) {
+            for (let x = this.x; x < x2; x += this.w) {
+              if (this.shouldSnapToX(p, x, dx, dy, y2)) {
                 p.pos.x = x;
               }
-              if (this.shouldSnapToY(p, y, pieceWidth, pieceHeight, this.x + this.boxWidth)) {
+              if (this.shouldSnapToY(p, y, dx, dy, x2)) {
                 p.pos.y = y;
               }
             }
           }
         }
 
-        private shouldSnapToX(p: Piece, x: number, pieceWidth: number, pieceHeight: number, boxBottom: number) {
-          return this.isOnGrid(p.pos.x, x, pieceWidth) && this.isInsideFrame(p.pos.y, this.y, boxBottom - pieceHeight, pieceHeight);
+        private shouldSnapToX(p: Piece, x: number, dx: number, dy: number, y2: number) {
+          return this.isOnGrid(p.pos.x, x, dx) && this.isInsideFrame(p.pos.y, this.y, y2 - this.h, dy);
         }
 
-        private shouldSnapToY(p: Piece, y: number, pieceWidth: number, pieceHeight: number, boxRight: number) {
-          return this.isOnGrid(p.pos.y, y, pieceHeight) && this.isInsideFrame(p.pos.x, this.x, boxRight - pieceWidth, pieceWidth);
+        private shouldSnapToY(p: Piece, y: number, dx: number, dy: number, x2: number) {
+          return this.isOnGrid(p.pos.y, y, dy) && this.isInsideFrame(p.pos.x, this.x, x2 - this.w, dx);
         }
 
         private isOnGrid(actualPos: number, gridPos: number, d: number) {
@@ -252,10 +219,8 @@ const Puzzle = () => {
           let nrCorrect = 0;
           this.pieces.forEach((p) => {
             let correctIndex = p.i;
-            const pieceWidth = this.boxWidth / this.side;
-            const pieceHeight = this.boxHeight / this.side;
             let actualIndex =
-              (p.pos.x - this.x) / pieceWidth + ((p.pos.y - this.y) / pieceHeight) * this.side;
+              (p.pos.x - this.x) / this.w + ((p.pos.y - this.y) / this.h) * this.side;
             if (actualIndex === correctIndex) {
               nrCorrect += 1;
             }
@@ -266,14 +231,6 @@ const Puzzle = () => {
           } else {
             console.log("Right places: " + nrCorrect);
           }
-        }
-
-        public updatePosition(x: number, y: number, boxWidth: number, boxHeight: number) {
-          this.x = x;
-          this.y = y;
-          this.boxWidth = boxWidth;
-          this.boxHeight = boxHeight;
-          this.placePieces(this.imgs);
         }
       }
     };
