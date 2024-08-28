@@ -38,3 +38,20 @@
   text-decoration: none;
   cursor: pointer;
 }
+
+/* styles/globals.css */
+/* styles/globals.css */
+
+.preloader {
+  @apply fixed inset-0 flex items-center justify-center bg-white z-50;
+}
+
+.puzzle {
+  @apply w-32 h-32;
+}
+
+.puzzle-piece {
+  @apply opacity-0; /* Start with hidden pieces */
+}
+
+
