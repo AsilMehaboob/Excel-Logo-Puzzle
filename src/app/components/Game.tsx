@@ -34,17 +34,13 @@ const Puzzle = () => {
       ];
 
       p.preload = () => {
-        // Randomly select one set of images
         selectedImages = Math.random() > 0.5 ? set1 : set2;
-
-        // Preload selected images
         selectedImages.forEach((url) => {
           images.push(p.loadImage(url));
         });
       };
 
       p.setup = () => {
-        // Define bounding box dimensions and center it
         const boxWidth = 400;
         const boxHeight = 400;
         const canvasWidth = p.windowWidth;
@@ -55,7 +51,6 @@ const Puzzle = () => {
         const canvas = p.createCanvas(canvasWidth, canvasHeight);
         canvas.parent(canvasRef.current!);
 
-        // Initialize the puzzle game with the bounding box dimensions
         puzzle = new PuzzleGame(boxX, boxY, boxWidth, boxHeight, images, 2); // 2x2 puzzle
       };
 
@@ -66,32 +61,32 @@ const Puzzle = () => {
 
       p.mousePressed = () => {
         puzzle?.mousePressed(p.mouseX, p.mouseY);
-        return false; // Prevent default behavior (optional)
+        return false;
       };
 
       p.mouseDragged = () => {
         puzzle?.mouseDragged(p.mouseX, p.mouseY);
-        return false; // Prevent default behavior (optional)
+        return false;
       };
 
       p.mouseReleased = () => {
         puzzle?.mouseReleased();
-        return false; // Prevent default behavior (optional)
+        return false;
       };
 
       p.touchStarted = () => {
         p.mousePressed();
-        return false; // Prevent default behavior
+        return false;
       };
 
       p.touchMoved = () => {
         p.mouseDragged();
-        return false; // Prevent default behavior
+        return false;
       };
 
       p.touchEnded = () => {
         p.mouseReleased();
-        return false; // Prevent default behavior
+        return false;
       };
 
       p.windowResized = () => {
@@ -133,11 +128,11 @@ const Puzzle = () => {
         }
 
         private placePieces(imgs: p5.Image[]) {
-          // Calculate the size of each piece based on the bounding box size and puzzle dimensions
+          this.pieces = []; // Clear the pieces array to prevent duplicates
+          
           const pieceWidth = this.boxWidth / this.side;
           const pieceHeight = this.boxHeight / this.side;
 
-          // Resize images to fit within each puzzle piece
           imgs.forEach((img) => {
             img.resize(pieceWidth, pieceHeight);
           });
@@ -149,19 +144,23 @@ const Puzzle = () => {
         }
 
         private randomPos(pieceWidth: number, pieceHeight: number) {
-          return p.createVector(
-            p.random(this.x, this.x + this.boxWidth - pieceWidth),
-            p.random(this.y, this.y + this.boxHeight - pieceHeight)
+          const outsideMargin = 50; // Adjust this value to control how far outside the box pieces spawn
+          let posX = p.random(
+            this.x - pieceWidth - outsideMargin,
+            this.x + this.boxWidth + outsideMargin
           );
+          let posY = p.random(
+            this.y - pieceHeight - outsideMargin,
+            this.y + this.boxHeight + outsideMargin
+          );
+          return p.createVector(posX, posY);
         }
 
         public draw() {
-          // Draw the bounding box centered on the canvas
           p.noFill();
           p.stroke(255);
           p.rect(this.x, this.y, this.boxWidth, this.boxHeight);
 
-          // Draw the pieces
           this.pieces.forEach((r) => p.image(r.img, r.pos.x, r.pos.y));
         }
 
@@ -257,46 +256,56 @@ const Puzzle = () => {
             let actualIndex =
               (p.pos.x - this.x) / pieceWidth + ((p.pos.y - this.y) / pieceHeight) * this.side;
             if (actualIndex === correctIndex) {
-              nrCorrect += 1;
+              nrCorrect++;
             }
           });
           if (nrCorrect === nrCorrectNeeded) {
-            setShowModal(true); // Show modal when the puzzle is complete
             this.canPlay = false;
-          } else {
-            console.log("Right places: " + nrCorrect);
+            setShowModal(true);
           }
         }
 
-        public updatePosition(x: number, y: number, boxWidth: number, boxHeight: number) {
+        public updatePosition(
+          x: number,
+          y: number,
+          boxWidth: number,
+          boxHeight: number
+        ) {
           this.x = x;
           this.y = y;
           this.boxWidth = boxWidth;
           this.boxHeight = boxHeight;
-          this.placePieces(this.imgs);
+
+          const pieceWidth = this.boxWidth / this.side;
+          const pieceHeight = this.boxHeight / this.side;
+
+          this.pieces.forEach((p) => {
+            p.img.resize(pieceWidth, pieceHeight);
+          });
+
+          this.placePieces(this.imgs); // Reinitialize pieces with new positions
         }
       }
     };
 
     const p5Instance = new p5(sketch);
 
-    // Cleanup on component unmount
     return () => {
       p5Instance.remove();
     };
   }, []);
 
   return (
-    <div ref={canvasRef} className="relative w-full h-full bg-gray-900">
+    <div className="flex justify-center bg-black items-center h-screen">
+      <div ref={canvasRef}></div>
       {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75">
-          <div className="bg-white p-6 sm:p-8 md:p-10 lg:p-12 xl:p-16 rounded-lg text-center max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
-              Hooray! You have completed the puzzle!
-            </h1>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-4 rounded-lg">
+            <h2 className="text-xl font-semibold mb-2">Congratulations!</h2>
+            <p>You've completed the puzzle.</p>
             <button
               onClick={() => setShowModal(false)}
-              className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-300"
+              className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
             >
               Close
             </button>
