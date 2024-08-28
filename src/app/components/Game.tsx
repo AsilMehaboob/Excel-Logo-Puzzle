@@ -17,34 +17,39 @@ const Puzzle = () => {
     const sketch = (p: p5) => {
       let puzzle: PuzzleGame | undefined;
       let images: p5.Image[] = [];
-      let selectedImage: p5.Image;
+      let selectedImages: string[] = [];
 
-      // Array of local image paths
-      const customImages = [
-        "/images/image1.jpg",
-        "/images/image2.jpg",
-        "/images/image3.jpg",
-        "/images/image4.jpg",
-        "/images/image5.jpg",
+      const set1 = [
+        "/images/2023_1.png",
+        "/images/2023_2.png",
+        "/images/2023_3.png",
+        "/images/2023_4.png",
+      ];
+
+      const set2 = [
+        "/images/2022_1.png",
+        "/images/2022_2.png",
+        "/images/2022_3.png",
+        "/images/2022_4.png",
       ];
 
       p.preload = () => {
-        // Preload all images
-        customImages.forEach((url) => {
+        // Randomly select one set of images
+        selectedImages = Math.random() > 0.5 ? set1 : set2;
+
+        // Preload selected images
+        selectedImages.forEach((url) => {
           images.push(p.loadImage(url));
         });
-
-        // Randomly select one image
-        selectedImage = images[Math.floor(Math.random() * images.length)];
       };
 
       p.setup = () => {
         const canvas = p.createCanvas(p.windowWidth, p.windowHeight);
         canvas.parent(canvasRef.current!);
         p.windowResized(); // Call this to set the initial canvas size
-        let x0 = p.windowWidth / 2 - selectedImage.width / 2;
-        let y0 = p.windowHeight / 2 - selectedImage.height / 2;
-        puzzle = new PuzzleGame(x0, y0, selectedImage, 2); // 2x2 puzzle
+        let x0 = p.windowWidth / 2 - images[0].width / 2;
+        let y0 = p.windowHeight / 2 - images[0].height / 2;
+        puzzle = new PuzzleGame(x0, y0, images, 2); // 2x2 puzzle
       };
 
       p.draw = () => {
@@ -99,33 +104,18 @@ const Puzzle = () => {
         constructor(
           private x: number,
           private y: number,
-          private img: p5.Image,
+          private imgs: p5.Image[],
           private side: number
         ) {
-          this.w = img.width / side;
-          this.h = img.height / side;
-          this.placePieces();
+          this.w = imgs[0].width;
+          this.h = imgs[0].height;
+          this.placePieces(imgs);
         }
 
-        private placePieces() {
-          for (let y = 0; y < this.side; y++) {
-            for (let x = 0; x < this.side; x++) {
-              let img = p.createImage(this.w, this.h);
-              img.copy(
-                this.img,
-                this.w * x,
-                this.h * y,
-                this.w,
-                this.h,
-                0,
-                0,
-                this.w,
-                this.h
-              );
-              let pos = this.randomPos(this.w, this.h);
-              let index = x + y * this.side;
-              this.pieces.push({ pos, img, i: index });
-            }
+        private placePieces(imgs: p5.Image[]) {
+          for (let i = 0; i < this.side * this.side; i++) {
+            let pos = this.randomPos(this.w, this.h);
+            this.pieces.push({ pos, img: imgs[i], i });
           }
         }
 
@@ -137,7 +127,7 @@ const Puzzle = () => {
         }
 
         public draw() {
-          p.rect(this.x - 1, this.y - 1, this.img.width + 1, this.img.height + 1);
+          p.rect(this.x - 1, this.y - 1, this.w * this.side + 1, this.h * this.side + 1);
           p.noFill();
           this.pieces.forEach((r) => p.image(r.img, r.pos.x, r.pos.y));
         }
@@ -194,8 +184,8 @@ const Puzzle = () => {
         private snapTo(p: Piece) {
           let dx = this.w / 2;
           let dy = this.h / 2;
-          let x2 = this.x + this.img.width;
-          let y2 = this.y + this.img.height;
+          let x2 = this.x + this.w * this.side;
+          let y2 = this.y + this.h * this.side;
           for (let y = this.y; y < y2; y += this.h) {
             for (let x = this.x; x < x2; x += this.w) {
               if (this.shouldSnapToX(p, x, dx, dy, y2)) {
