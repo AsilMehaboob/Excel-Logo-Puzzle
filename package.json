@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "animejs": "^3.2.2",
+    "canvas-confetti": "^1.9.3",
+    "fortawesome": "^0.0.1-security",
     "gsap": "^3.12.5",
     "next": "14.2.5",
     "p5": "^1.10.0",
@@ -18,6 +20,7 @@
   },
   "devDependencies": {
     "@types/animejs": "^3.1.12",
+    "@types/canvas-confetti": "^1.6.4",
     "@types/node": "^20",
     "@types/p5": "^1.7.6",
     "@types/react": "^18",

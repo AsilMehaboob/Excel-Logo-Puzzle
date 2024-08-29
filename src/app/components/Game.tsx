@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import p5 from "p5";
+import RefreshButton from "./RefreshButton";
+import Confetti from "./Confetti";
 
 interface Piece {
   pos: p5.Vector;
@@ -12,6 +14,7 @@ interface Piece {
 const Puzzle = () => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [showModal, setShowModal] = useState(false);
+  const [confettiTriggered, setConfettiTriggered] = useState(false);
 
   useEffect(() => {
     const sketch = (p: p5) => {
@@ -92,14 +95,15 @@ const Puzzle = () => {
       p.windowResized = () => {
         const canvasWidth = p.windowWidth;
         const canvasHeight = p.windowHeight;
-        const boxWidth = 400;
-        const boxHeight = 400;
+        const boxWidth = Math.min(400, canvasWidth * 0.8); // Adjust width for smaller screens
+        const boxHeight = Math.min(400, canvasHeight * 0.8); // Adjust height for smaller screens
         const boxX = (canvasWidth - boxWidth) / 2;
         const boxY = (canvasHeight - boxHeight) / 2;
-
+      
         p.resizeCanvas(canvasWidth, canvasHeight);
         puzzle?.updatePosition(boxX, boxY, boxWidth, boxHeight);
       };
+      
 
       class PuzzleGame {
         private pieces: Piece[] = [];
@@ -144,17 +148,22 @@ const Puzzle = () => {
         }
 
         private randomPos(pieceWidth: number, pieceHeight: number) {
-          const outsideMargin = 50; // Adjust this value to control how far outside the box pieces spawn
-          let posX = p.random(
-            this.x - pieceWidth - outsideMargin,
-            this.x + this.boxWidth + outsideMargin
+          // Ensure that pieces spawn within the canvas, considering screen size
+          const marginX = Math.min(50, (p.windowWidth - this.boxWidth) / 2 - pieceWidth);
+          const marginY = Math.min(50, (p.windowHeight - this.boxHeight) / 2 - pieceHeight);
+        
+          const posX = p.random(
+            Math.max(this.x - marginX, 0),
+            Math.min(this.x + this.boxWidth + marginX, p.windowWidth - pieceWidth)
           );
-          let posY = p.random(
-            this.y - pieceHeight - outsideMargin,
-            this.y + this.boxHeight + outsideMargin
+          const posY = p.random(
+            Math.max(this.y - marginY, 0),
+            Math.min(this.y + this.boxHeight + marginY, p.windowHeight - pieceHeight)
           );
+        
           return p.createVector(posX, posY);
         }
+        
 
         public draw() {
           p.noFill();
@@ -261,6 +270,7 @@ const Puzzle = () => {
           });
           if (nrCorrect === nrCorrectNeeded) {
             this.canPlay = false;
+            setConfettiTriggered(true); // Trigger confetti
             setShowModal(true);
           }
         }
@@ -296,22 +306,28 @@ const Puzzle = () => {
   }, []);
 
   return (
-    <div className="flex justify-center bg-black items-center h-screen">
-      <div ref={canvasRef}></div>
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-4 rounded-lg">
-            <h2 className="text-xl font-semibold mb-2">Congratulations!</h2>
-            <p>You've completed the puzzle.</p>
-            <button
-              onClick={() => setShowModal(false)}
-              className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
-            >
-              Close
-            </button>
-          </div>
+    <div className="flex justify-center items-center h-screen">
+      <div className="flex justify-center bg-black items-center h-screen">
+        <div ref={canvasRef}>
+        <RefreshButton />
         </div>
-      )}
+        {showModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+            <div className="bg-white p-4 rounded-lg">
+              <h2 className="text-xl font-semibold mb-2">Congratulations!</h2>
+              <p>You've completed the puzzle.</p>
+              <button
+                onClick={() => setShowModal(false)}
+                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+      <Confetti trigger={confettiTriggered} onComplete={() => setConfettiTriggered(false)} />
+
     </div>
   );
 };
