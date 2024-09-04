@@ -1,4 +1,5 @@
 import dynamic from 'next/dynamic';
+import { BorderBeamDemo } from './components/BorderBeam';
 
 // Dynamically import the Puzzle component with SSR disabled
 const Puzzle = dynamic(() => import('./components/Game'), {
@@ -9,6 +10,7 @@ const Home: React.FC = () => {
   return (
     <div>
       <Puzzle />
+
     </div>
   );
 };

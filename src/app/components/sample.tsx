@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import p5 from "p5";
+import RefreshButton from "./RefreshButton";
+import Confetti from "./Confetti";
 
 interface Piece {
   pos: p5.Vector;
@@ -12,6 +14,7 @@ interface Piece {
 const Puzzle = () => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [showModal, setShowModal] = useState(false);
+  const [confettiTriggered, setConfettiTriggered] = useState(false);
 
   useEffect(() => {
     const sketch = (p: p5) => {
@@ -34,22 +37,24 @@ const Puzzle = () => {
       ];
 
       p.preload = () => {
-        // Randomly select one set of images
         selectedImages = Math.random() > 0.5 ? set1 : set2;
-
-        // Preload selected images
         selectedImages.forEach((url) => {
           images.push(p.loadImage(url));
         });
       };
 
       p.setup = () => {
-        const canvas = p.createCanvas(p.windowWidth, p.windowHeight);
+        const boxWidth = 400;
+        const boxHeight = 400;
+        const canvasWidth = p.windowWidth;
+        const canvasHeight = p.windowHeight;
+        const boxX = (canvasWidth - boxWidth) / 2;
+        const boxY = (canvasHeight - boxHeight) / 2;
+
+        const canvas = p.createCanvas(canvasWidth, canvasHeight);
         canvas.parent(canvasRef.current!);
-        p.windowResized(); // Call this to set the initial canvas size
-        let x0 = p.windowWidth / 2 - images[0].width / 2;
-        let y0 = p.windowHeight / 2 - images[0].height / 2;
-        puzzle = new PuzzleGame(x0, y0, images, 2); // 2x2 puzzle
+
+        puzzle = new PuzzleGame(boxX, boxY, boxWidth, boxHeight, images, 2); // 2x2 puzzle
       };
 
       p.draw = () => {
@@ -59,38 +64,46 @@ const Puzzle = () => {
 
       p.mousePressed = () => {
         puzzle?.mousePressed(p.mouseX, p.mouseY);
-        return false; // Prevent default behavior (optional)
+        return false;
       };
 
       p.mouseDragged = () => {
         puzzle?.mouseDragged(p.mouseX, p.mouseY);
-        return false; // Prevent default behavior (optional)
+        return false;
       };
 
       p.mouseReleased = () => {
         puzzle?.mouseReleased();
-        return false; // Prevent default behavior (optional)
+        return false;
       };
 
       p.touchStarted = () => {
         p.mousePressed();
-        return false; // Prevent default behavior
+        return false;
       };
 
       p.touchMoved = () => {
         p.mouseDragged();
-        return false; // Prevent default behavior
+        return false;
       };
 
       p.touchEnded = () => {
         p.mouseReleased();
-        return false; // Prevent default behavior
+        return false;
       };
 
       p.windowResized = () => {
-        p.resizeCanvas(p.windowWidth, p.windowHeight);
-        // Optional: Adjust puzzle position on resize if needed
+        const canvasWidth = p.windowWidth;
+        const canvasHeight = p.windowHeight;
+        const boxWidth = Math.min(400, canvasWidth * 0.8); // Adjust width for smaller screens
+        const boxHeight = Math.min(400, canvasHeight * 0.8); // Adjust height for smaller screens
+        const boxX = (canvasWidth - boxWidth) / 2;
+        const boxY = (canvasHeight - boxHeight) / 2;
+      
+        p.resizeCanvas(canvasWidth, canvasHeight);
+        puzzle?.updatePosition(boxX, boxY, boxWidth, boxHeight);
       };
+      
 
       class PuzzleGame {
         private pieces: Piece[] = [];
@@ -98,37 +111,65 @@ const Puzzle = () => {
         private isDragging = false;
         private canPlay = true;
         private clickOffset: p5.Vector = new p5.Vector(0, 0);
-        private w: number;
-        private h: number;
+        private x: number;
+        private y: number;
+        private boxWidth: number;
+        private boxHeight: number;
 
         constructor(
-          private x: number,
-          private y: number,
+          x: number,
+          y: number,
+          boxWidth: number,
+          boxHeight: number,
           private imgs: p5.Image[],
           private side: number
         ) {
-          this.w = imgs[0].width;
-          this.h = imgs[0].height;
+          this.x = x;
+          this.y = y;
+          this.boxWidth = boxWidth;
+          this.boxHeight = boxHeight;
           this.placePieces(imgs);
         }
 
         private placePieces(imgs: p5.Image[]) {
+          this.pieces = []; // Clear the pieces array to prevent duplicates
+          
+          const pieceWidth = this.boxWidth / this.side;
+          const pieceHeight = this.boxHeight / this.side;
+
+          imgs.forEach((img) => {
+            img.resize(pieceWidth, pieceHeight);
+          });
+
           for (let i = 0; i < this.side * this.side; i++) {
-            let pos = this.randomPos(this.w, this.h);
+            let pos = this.randomPos(pieceWidth, pieceHeight);
             this.pieces.push({ pos, img: imgs[i], i });
           }
         }
 
-        private randomPos(marginRight: number, marginBottom: number) {
-          return p.createVector(
-            p.random(0, p.windowWidth - marginRight),
-            p.random(0, p.windowHeight - marginBottom)
+        private randomPos(pieceWidth: number, pieceHeight: number) {
+          // Ensure that pieces spawn within the canvas, considering screen size
+          const marginX = Math.min(50, (p.windowWidth - this.boxWidth) / 2 - pieceWidth);
+          const marginY = Math.min(50, (p.windowHeight - this.boxHeight) / 2 - pieceHeight);
+        
+          const posX = p.random(
+            Math.max(this.x - marginX, 0),
+            Math.min(this.x + this.boxWidth + marginX, p.windowWidth - pieceWidth)
           );
+          const posY = p.random(
+            Math.max(this.y - marginY, 0),
+            Math.min(this.y + this.boxHeight + marginY, p.windowHeight - pieceHeight)
+          );
+        
+          return p.createVector(posX, posY);
         }
+        
 
         public draw() {
-          p.rect(this.x - 1, this.y - 1, this.w * this.side + 1, this.h * this.side + 1);
           p.noFill();
+          p.stroke(255);
+          p.rect(this.x, this.y, this.boxWidth, this.boxHeight);
+
           this.pieces.forEach((r) => p.image(r.img, r.pos.x, r.pos.y));
         }
 
@@ -151,11 +192,13 @@ const Puzzle = () => {
         }
 
         private hits(p: Piece, hitpos: p5.Vector) {
+          const pieceWidth = this.boxWidth / this.side;
+          const pieceHeight = this.boxHeight / this.side;
           return (
             hitpos.x > p.pos.x &&
-            hitpos.x < p.pos.x + this.w &&
+            hitpos.x < p.pos.x + pieceWidth &&
             hitpos.y > p.pos.y &&
-            hitpos.y < p.pos.y + this.h
+            hitpos.y < p.pos.y + pieceHeight
           );
         }
 
@@ -182,28 +225,26 @@ const Puzzle = () => {
         }
 
         private snapTo(p: Piece) {
-          let dx = this.w / 2;
-          let dy = this.h / 2;
-          let x2 = this.x + this.w * this.side;
-          let y2 = this.y + this.h * this.side;
-          for (let y = this.y; y < y2; y += this.h) {
-            for (let x = this.x; x < x2; x += this.w) {
-              if (this.shouldSnapToX(p, x, dx, dy, y2)) {
+          const pieceWidth = this.boxWidth / this.side;
+          const pieceHeight = this.boxHeight / this.side;
+          for (let y = this.y; y < this.y + this.boxHeight; y += pieceHeight) {
+            for (let x = this.x; x < this.x + this.boxWidth; x += pieceWidth) {
+              if (this.shouldSnapToX(p, x, pieceWidth, pieceHeight, this.y + this.boxHeight)) {
                 p.pos.x = x;
               }
-              if (this.shouldSnapToY(p, y, dx, dy, x2)) {
+              if (this.shouldSnapToY(p, y, pieceWidth, pieceHeight, this.x + this.boxWidth)) {
                 p.pos.y = y;
               }
             }
           }
         }
 
-        private shouldSnapToX(p: Piece, x: number, dx: number, dy: number, y2: number) {
-          return this.isOnGrid(p.pos.x, x, dx) && this.isInsideFrame(p.pos.y, this.y, y2 - this.h, dy);
+        private shouldSnapToX(p: Piece, x: number, pieceWidth: number, pieceHeight: number, boxBottom: number) {
+          return this.isOnGrid(p.pos.x, x, pieceWidth) && this.isInsideFrame(p.pos.y, this.y, boxBottom - pieceHeight, pieceHeight);
         }
 
-        private shouldSnapToY(p: Piece, y: number, dx: number, dy: number, x2: number) {
-          return this.isOnGrid(p.pos.y, y, dy) && this.isInsideFrame(p.pos.x, this.x, x2 - this.w, dx);
+        private shouldSnapToY(p: Piece, y: number, pieceWidth: number, pieceHeight: number, boxRight: number) {
+          return this.isOnGrid(p.pos.y, y, pieceHeight) && this.isInsideFrame(p.pos.x, this.x, boxRight - pieceWidth, pieceWidth);
         }
 
         private isOnGrid(actualPos: number, gridPos: number, d: number) {
@@ -219,47 +260,74 @@ const Puzzle = () => {
           let nrCorrect = 0;
           this.pieces.forEach((p) => {
             let correctIndex = p.i;
+            const pieceWidth = this.boxWidth / this.side;
+            const pieceHeight = this.boxHeight / this.side;
             let actualIndex =
-              (p.pos.x - this.x) / this.w + ((p.pos.y - this.y) / this.h) * this.side;
+              (p.pos.x - this.x) / pieceWidth + ((p.pos.y - this.y) / pieceHeight) * this.side;
             if (actualIndex === correctIndex) {
-              nrCorrect += 1;
+              nrCorrect++;
             }
           });
           if (nrCorrect === nrCorrectNeeded) {
-            setShowModal(true); // Show modal when the puzzle is complete
             this.canPlay = false;
-          } else {
-            console.log("Right places: " + nrCorrect);
+            setConfettiTriggered(true); // Trigger confetti
+            setShowModal(true);
           }
+        }
+
+        public updatePosition(
+          x: number,
+          y: number,
+          boxWidth: number,
+          boxHeight: number
+        ) {
+          this.x = x;
+          this.y = y;
+          this.boxWidth = boxWidth;
+          this.boxHeight = boxHeight;
+
+          const pieceWidth = this.boxWidth / this.side;
+          const pieceHeight = this.boxHeight / this.side;
+
+          this.pieces.forEach((p) => {
+            p.img.resize(pieceWidth, pieceHeight);
+          });
+
+          this.placePieces(this.imgs); // Reinitialize pieces with new positions
         }
       }
     };
 
     const p5Instance = new p5(sketch);
 
-    // Cleanup on component unmount
     return () => {
       p5Instance.remove();
     };
   }, []);
 
   return (
-    <div ref={canvasRef} className="relative w-full h-full bg-gray-900">
-      {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75">
-          <div className="bg-white p-6 sm:p-8 md:p-10 lg:p-12 xl:p-16 rounded-lg text-center max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
-              Hooray! You have completed the puzzle!
-            </h1>
-            <button
-              onClick={() => setShowModal(false)}
-              className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-300"
-            >
-              Close
-            </button>
-          </div>
+    <div className="flex justify-center items-center h-screen">
+      <div className="flex justify-center bg-black items-center h-screen">
+        <div ref={canvasRef}>
+        <RefreshButton />
         </div>
-      )}
+        {showModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+            <div className="bg-white p-4 rounded-lg">
+              <h2 className="text-xl font-semibold mb-2">Congratulations!</h2>
+              <p>You've completed the puzzle.</p>
+              <button
+                onClick={() => setShowModal(false)}
+                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+      <Confetti trigger={confettiTriggered} onComplete={() => setConfettiTriggered(false)} />
+
     </div>
   );
 };
