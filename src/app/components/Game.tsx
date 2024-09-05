@@ -138,16 +138,19 @@ const Puzzle = () => {
 
           const pieceWidth = this.boxWidth / this.side;
           const pieceHeight = this.boxHeight / this.side;
+          const manualPositions = [
+            p.createVector(this.x + pieceWidth * 0.6, this.y + pieceHeight * 0.69),
+            p.createVector(this.x + pieceWidth * 1.32, this.y + pieceHeight * 0.60),
+            p.createVector(this.x + pieceWidth * 0.69, this.y + pieceHeight * 1.41),
+            p.createVector(this.x + pieceWidth * 1.405, this.y + pieceHeight * 1.32),
+          ];
 
           for (let i = 0; i < this.side * this.side; i++) {
             const row = Math.floor(i / this.side);
             const col = i % this.side;
 
             // Calculate the center of the correct position for the piece
-            const correctPos = p.createVector(
-              this.x + col * pieceWidth + pieceWidth / 2,
-              this.y + row * pieceHeight + pieceHeight / 2
-            );
+            const correctPos = manualPositions[i];
 
             const img = imgs[i];
             const aspectRatio = img.width / img.height;
