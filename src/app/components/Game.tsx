@@ -26,17 +26,17 @@ const Puzzle = () => {
       let selectedImages: string[] = [];
 
       const set1 = [
-        "/images/2020_1.svg",
-        "/images/2020_2.svg",
-        "/images/2020_3.svg",
-        "/images/2020_4.svg",
+        "/images/2021_1.svg",
+        "/images/2021_2.svg",
+        "/images/2021_3.svg",
+        "/images/2021_4.svg",
       ];
 
       const set2 = [
-        "/images/2020_1.svg",
-        "/images/2020_2.svg",
-        "/images/2020_3.svg",
-        "/images/2020_4.svg",
+        "/images/2021_1.svg",
+        "/images/2021_2.svg",
+        "/images/2021_3.svg",
+        "/images/2021_4.svg",
       ];
 
       p.preload = () => {
@@ -139,10 +139,10 @@ const Puzzle = () => {
           const pieceWidth = this.boxWidth / this.side;
           const pieceHeight = this.boxHeight / this.side;
           const manualPositions = [
-            p.createVector(this.x + pieceWidth * 0.815, this.y + pieceHeight * 0.805),
+            p.createVector(this.x + pieceWidth * 0.909, this.y + pieceHeight * 0.805),
             p.createVector(this.x + pieceWidth * 1.368, this.y + pieceHeight * 0.8),
-            p.createVector(this.x + pieceWidth * 0.690, this.y + pieceHeight * 1.403),
-            p.createVector(this.x + pieceWidth * 1.360, this.y + pieceHeight * 1.400),
+            p.createVector(this.x + pieceWidth * 0.800, this.y + pieceHeight * 1.303),
+            p.createVector(this.x + pieceWidth * 1.360, this.y + pieceHeight * 1.303),
           ];
 
           for (let i = 0; i < this.side * this.side; i++) {
