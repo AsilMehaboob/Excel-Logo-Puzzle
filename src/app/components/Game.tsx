@@ -26,17 +26,17 @@ const Puzzle = () => {
       let selectedImages: string[] = [];
 
       const set1 = [
-        "/images/1.svg",
-        "/images/2.svg",
-        "/images/3.svg",
-        "/images/4.svg",
+        "/images/2020_1.svg",
+        "/images/2020_2.svg",
+        "/images/2020_3.svg",
+        "/images/2020_4.svg",
       ];
 
       const set2 = [
-        "/images/1.svg",
-        "/images/2.svg",
-        "/images/3.svg",
-        "/images/4.svg",
+        "/images/2020_1.svg",
+        "/images/2020_2.svg",
+        "/images/2020_3.svg",
+        "/images/2020_4.svg",
       ];
 
       p.preload = () => {
@@ -141,8 +141,8 @@ const Puzzle = () => {
           const manualPositions = [
             p.createVector(this.x + pieceWidth * 0.815, this.y + pieceHeight * 0.805),
             p.createVector(this.x + pieceWidth * 1.368, this.y + pieceHeight * 0.8),
-            p.createVector(this.x + pieceWidth * 0.686, this.y + pieceHeight * 1.403),
-            p.createVector(this.x + pieceWidth * 1.489, this.y + pieceHeight * 1.349),
+            p.createVector(this.x + pieceWidth * 0.690, this.y + pieceHeight * 1.403),
+            p.createVector(this.x + pieceWidth * 1.360, this.y + pieceHeight * 1.400),
           ];
 
           for (let i = 0; i < this.side * this.side; i++) {
@@ -335,7 +335,7 @@ const Puzzle = () => {
   };
 
   return (
-    <div className="bg-violet-400">
+    <div className="bg-gray-900">
       {confettiTriggered && <Confetti trigger={false} onComplete={function (): void {
         throw new Error("Function not implemented.");
       } } />}
