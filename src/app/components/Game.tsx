@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import p5 from "p5";
+import gsap from "gsap";
 import RefreshButton from "./RefreshButton";
 import Confetti from "./Confetti";
 
@@ -79,7 +80,7 @@ const Puzzle = () => {
       p.preload = () => {
         const yearKeys = Object.keys(imageSets);
         const randomYear = yearKeys[Math.floor(Math.random() * yearKeys.length)];
-        selectedImages = imageSets[randomYear as unknown as keyof typeof imageSets];
+        selectedImages = imageSets[randomYear as keyof typeof imageSets];
         selectedImages.forEach((url) => {
           images.push(p.loadImage(url));
         });
@@ -146,7 +147,6 @@ const Puzzle = () => {
         puzzle?.updatePosition(boxX, boxY, boxSize, boxSize);
       };
 
-      
       class PuzzleGame {
         private pieces: Piece[] = [];
         private dragPiece: Piece | null = null;
@@ -186,27 +186,20 @@ const Puzzle = () => {
           ];
 
           for (let i = 0; i < this.side * this.side; i++) {
-            const row = Math.floor(i / this.side);
-            const col = i % this.side;
-
-            // Calculate the center of the correct position for the piece
+            const img = imgs[i];
             const correctPos = manualPositions[i];
 
-            const img = imgs[i];
             const aspectRatio = img.width / img.height;
             let scaledWidth, scaledHeight;
 
             if (aspectRatio > 1) {
-              // Image is wider than tall
               scaledWidth = pieceWidth;
               scaledHeight = pieceWidth / aspectRatio;
             } else {
-              // Image is taller than wide or square
               scaledHeight = pieceHeight;
               scaledWidth = pieceHeight * aspectRatio;
             }
 
-            // Randomize initial position
             const isAbove = i < Math.floor(this.side * this.side / 2);
             const pos = this.randomPos(scaledWidth, scaledHeight, isAbove);
 
@@ -221,11 +214,7 @@ const Puzzle = () => {
           }
         }
 
-        private randomPos(
-          pieceWidth: number,
-          pieceHeight: number,
-          isAbove: boolean
-        ) {
+        private randomPos(pieceWidth: number, pieceHeight: number, isAbove: boolean) {
           const marginX = Math.min(
             50,
             (p.windowWidth - this.boxWidth) / 2 - pieceWidth
@@ -242,25 +231,9 @@ const Puzzle = () => {
               p.windowWidth - pieceWidth
             )
           );
-          let posY;
-
-          if (isAbove) {
-            posY = p.random(
-              Math.max(0, this.y - marginY - pieceHeight),
-              Math.max(0, this.y - marginY)
-            );
-          } else {
-            posY = p.random(
-              Math.min(
-                p.windowHeight - pieceHeight,
-                this.y + this.boxHeight + marginY
-              ),
-              Math.min(
-                p.windowHeight - pieceHeight,
-                this.y + this.boxHeight + marginY + pieceHeight
-              )
-            );
-          }
+          let posY = isAbove
+            ? p.random(Math.max(0, this.y - marginY - pieceHeight), Math.max(0, this.y - marginY))
+            : p.random(Math.min(p.windowHeight - pieceHeight, this.y + this.boxHeight + marginY), Math.min(p.windowHeight - pieceHeight, this.y + this.boxHeight + marginY + pieceHeight));
 
           return p.createVector(posX, posY);
         }
@@ -325,76 +298,65 @@ const Puzzle = () => {
         }
 
         private snapTo(p: Piece) {
-          // Align the piece's center with the center of its correct position
-          if (
-            p.pos.dist(p.correctPos) <
-            Math.min(p.scaledWidth, p.scaledHeight) / 2
-          ) {
+          if (p.pos.dist(p.correctPos) < Math.min(p.scaledWidth, p.scaledHeight) / 2) {
             p.pos = p.correctPos.copy();
           }
         }
 
         private checkEndGame() {
-          let correctPieces = 0;
-          this.pieces.forEach((p) => {
-            if (p.pos.equals(p.correctPos)) {
-              correctPieces++;
-            }
-          });
-          if (correctPieces === this.side * this.side) {
+          let isComplete = this.pieces.every((p) => p.pos.equals(p.correctPos));
+
+          if (isComplete && this.canPlay) {
             this.canPlay = false;
-            setShowModal(true);
-            setConfettiTriggered(true);
+
+            setTimeout(() => {
+              // Trigger flying off-screen animation for each piece
+              this.pieces.forEach((piece) => {
+                gsap.to(piece.pos, {
+                  x: p.random(-500, p.windowWidth + 500),
+                  y: p.random(-500, p.windowHeight + 500),
+                  duration: 2,
+                  ease: "power2.inOut",
+                });
+              });
+
+              // Show the modal after the animation completes
+              setTimeout(() => {
+                setShowModal(true);
+                setConfettiTriggered(true);
+              }, 2000);
+            }, 500);
           }
         }
 
-        public updatePosition(
-          x: number,
-          y: number,
-          boxWidth: number,
-          boxHeight: number
-        ) {
+        public updatePosition(x: number, y: number, boxWidth: number, boxHeight: number) {
           this.x = x;
           this.y = y;
           this.boxWidth = boxWidth;
           this.boxHeight = boxHeight;
-          this.placePieces(this.imgs);
         }
       }
     };
 
-    const p5Instance = new p5(sketch);
+    const myp5 = new p5(sketch);
 
     return () => {
-      p5Instance.remove();
+      myp5.remove();
     };
   }, []);
 
-  const closeModal = () => {
-    setShowModal(false);
-  };
-
   return (
-    <div className="bg-gray-900">
-      {confettiTriggered && <Confetti trigger={false} onComplete={function (): void {
-        throw new Error("Function not implemented.");
-      } } />}
-      <div ref={canvasRef}></div>
+    <div>
+      <div ref={canvasRef} className="h-screen bg-gray-900 w-screen"></div>
       {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-8 rounded shadow">
-            <h2 className="text-2xl mb-4">Congratulations!</h2>
-            <p className="mb-4">You've completed the puzzle!</p>
-            <button
-              className="bg-blue-500 text-white py-2 px-4 rounded"
-              onClick={closeModal}
-            >
-              Close
-            </button>
+        <div className="absolute inset-0 z-50 flex items-center justify-center">
+          <div className="bg-white p-8 rounded-lg shadow-lg">
+            <h2 className="text-xl font-bold mb-4">Puzzle Completed!</h2>
+            <RefreshButton />
           </div>
         </div>
       )}
-      <RefreshButton />
+      {confettiTriggered && <Confetti />}
     </div>
   );
 };
