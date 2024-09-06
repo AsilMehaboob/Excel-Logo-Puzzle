@@ -25,22 +25,61 @@ const Puzzle = () => {
       let images: p5.Image[] = [];
       let selectedImages: string[] = [];
 
-      const set1 = [
-        "/images/2021_1.svg",
-        "/images/2021_2.svg",
-        "/images/2021_3.svg",
-        "/images/2021_4.svg",
-      ];
-
-      const set2 = [
-        "/images/2021_1.svg",
-        "/images/2021_2.svg",
-        "/images/2021_3.svg",
-        "/images/2021_4.svg",
-      ];
+      const imageSets = {
+        2023: [
+          "/images/2023_1.svg",
+          "/images/2023_2.svg",
+          "/images/2023_3.svg",
+          "/images/2023_4.svg",
+        ],
+        2022: [
+          "/images/2022_1.svg",
+          "/images/2022_2.svg",
+          "/images/2022_3.svg",
+          "/images/2022_4.svg",
+        ],
+        2021: [
+          "/images/2021_1.svg",
+          "/images/2021_2.svg",
+          "/images/2021_3.svg",
+          "/images/2021_4.svg",
+        ],
+        2020: [
+          "/images/2020_1.svg",
+          "/images/2020_2.svg",
+          "/images/2020_3.svg",
+          "/images/2020_4.svg",
+        ],
+        2019: [
+          "/images/2019_1.svg",
+          "/images/2019_2.svg",
+          "/images/2019_3.svg",
+          "/images/2019_4.svg",
+        ],
+        2018: [
+          "/images/2018_1.svg",
+          "/images/2018_2.svg",
+          "/images/2018_3.svg",
+          "/images/2018_4.svg",
+        ],
+        2017: [
+          "/images/2017_1.svg",
+          "/images/2017_2.svg",
+          "/images/2017_3.svg",
+          "/images/2017_4.svg",
+        ],
+        2016: [
+          "/images/2016_1.svg",
+          "/images/2016_2.svg",
+          "/images/2016_3.svg",
+          "/images/2016_4.svg",
+        ],
+      };
 
       p.preload = () => {
-        selectedImages = Math.random() > 0.5 ? set1 : set2;
+        const yearKeys = Object.keys(imageSets);
+        const randomYear = yearKeys[Math.floor(Math.random() * yearKeys.length)];
+        selectedImages = imageSets[randomYear as unknown as keyof typeof imageSets];
         selectedImages.forEach((url) => {
           images.push(p.loadImage(url));
         });
@@ -107,6 +146,7 @@ const Puzzle = () => {
         puzzle?.updatePosition(boxX, boxY, boxSize, boxSize);
       };
 
+      
       class PuzzleGame {
         private pieces: Piece[] = [];
         private dragPiece: Piece | null = null;
