@@ -4,8 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import p5 from "p5";
 import RefreshButton from "./RefreshButton";
 import Confetti from "./Confetti";
-import 'aos/dist/aos.css';
-import AOS from 'aos';
 
 interface Piece {
   pos: p5.Vector;
@@ -14,7 +12,6 @@ interface Piece {
   correctPos: p5.Vector;
   scaledWidth: number;
   scaledHeight: number;
-  aosId: string; // Add AOS ID
 }
 
 const Puzzle = () => {
@@ -23,13 +20,10 @@ const Puzzle = () => {
   const [confettiTriggered, setConfettiTriggered] = useState(false);
 
   useEffect(() => {
-    AOS.init({ duration: 1000 }); // Initialize AOS
-
     const sketch = (p: p5) => {
       let puzzle: PuzzleGame | undefined;
       let images: p5.Image[] = [];
       let selectedImages: string[] = [];
-      const aosIds: string[] = []; // Array to keep track of AOS IDs
 
       const set1 = [
         "/images/1.svg",
@@ -63,7 +57,7 @@ const Puzzle = () => {
         const boxX = (canvasWidth - boxSize) / 2;
         const boxY = (canvasHeight - boxSize) / 2;
 
-        puzzle = new PuzzleGame(boxX, boxY, boxSize, boxSize, images, 2, aosIds); // Pass AOS IDs
+        puzzle = new PuzzleGame(boxX, boxY, boxSize, boxSize, images, 2); // 2x2 puzzle
       };
 
       p.draw = () => {
@@ -123,7 +117,6 @@ const Puzzle = () => {
         private y: number;
         private boxWidth: number;
         private boxHeight: number;
-        private aosIds: string[]; // Store AOS IDs
 
         constructor(
           x: number,
@@ -131,14 +124,12 @@ const Puzzle = () => {
           boxWidth: number,
           boxHeight: number,
           private imgs: p5.Image[],
-          private side: number,
-          aosIds: string[]
+          private side: number
         ) {
           this.x = x;
           this.y = y;
           this.boxWidth = boxWidth;
           this.boxHeight = boxHeight;
-          this.aosIds = aosIds; // Initialize AOS IDs
           this.placePieces(imgs);
         }
 
@@ -148,10 +139,10 @@ const Puzzle = () => {
           const pieceWidth = this.boxWidth / this.side;
           const pieceHeight = this.boxHeight / this.side;
           const manualPositions = [
-            p.createVector(this.x + pieceWidth * 0.6, this.y + pieceHeight * 0.69),
-            p.createVector(this.x + pieceWidth * 1.32, this.y + pieceHeight * 0.60),
-            p.createVector(this.x + pieceWidth * 0.69, this.y + pieceHeight * 1.41),
-            p.createVector(this.x + pieceWidth * 1.405, this.y + pieceHeight * 1.32),
+            p.createVector(this.x + pieceWidth * 0.815, this.y + pieceHeight * 0.805),
+            p.createVector(this.x + pieceWidth * 1.368, this.y + pieceHeight * 0.8),
+            p.createVector(this.x + pieceWidth * 0.686, this.y + pieceHeight * 1.403),
+            p.createVector(this.x + pieceWidth * 1.489, this.y + pieceHeight * 1.349),
           ];
 
           for (let i = 0; i < this.side * this.side; i++) {
@@ -179,10 +170,6 @@ const Puzzle = () => {
             const isAbove = i < Math.floor(this.side * this.side / 2);
             const pos = this.randomPos(scaledWidth, scaledHeight, isAbove);
 
-            // Generate a unique AOS ID for each piece
-            const aosId = `piece-${i}`;
-            this.aosIds.push(aosId);
-
             this.pieces.push({
               pos,
               img,
@@ -190,7 +177,6 @@ const Puzzle = () => {
               correctPos,
               scaledWidth,
               scaledHeight,
-              aosId, // Assign AOS ID
             });
           }
         }
@@ -350,7 +336,9 @@ const Puzzle = () => {
 
   return (
     <div className="bg-violet-400">
-      {confettiTriggered && <Confetti trigger={false} onComplete={() => {}} />}
+      {confettiTriggered && <Confetti trigger={false} onComplete={function (): void {
+        throw new Error("Function not implemented.");
+      } } />}
       <div ref={canvasRef}></div>
       {showModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
