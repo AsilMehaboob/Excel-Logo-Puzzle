@@ -80,7 +80,7 @@ const Puzzle = () => {
       p.preload = () => {
         const yearKeys = Object.keys(imageSets);
         const randomYear = yearKeys[Math.floor(Math.random() * yearKeys.length)];
-        selectedImages = imageSets[randomYear as keyof typeof imageSets];
+        selectedImages = imageSets[randomYear as unknown as keyof typeof imageSets];
         selectedImages.forEach((url) => {
           images.push(p.loadImage(url));
         });
@@ -356,7 +356,9 @@ const Puzzle = () => {
           </div>
         </div>
       )}
-      {confettiTriggered && <Confetti />}
+      {confettiTriggered && <Confetti trigger={false} onComplete={function (): void {
+        throw new Error("Function not implemented.");
+      } } />}
     </div>
   );
 };
