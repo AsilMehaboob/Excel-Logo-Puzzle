@@ -319,21 +319,32 @@ const Puzzle = () => {
 
         private checkEndGame() {
           let isComplete = this.pieces.every((p) => p.pos.equals(p.correctPos));
-
+        
           if (isComplete && this.canPlay) {
             this.canPlay = false;
-
+        
             setTimeout(() => {
+              // Define the directions for scattering
+              const directions = [
+                { x: -500, y: -500 }, // Top-left
+                { x: p.windowWidth + 500, y: -500 }, // Top-right
+                { x: -500, y: p.windowHeight + 500 }, // Bottom-left
+                { x: p.windowWidth + 500, y: p.windowHeight + 500 }, // Bottom-right
+              ];
+        
               // Trigger flying off-screen animation for each piece
-              this.pieces.forEach((piece) => {
+              this.pieces.forEach((piece, index) => {
+                // Assign each piece to scatter in one of the four directions
+                const direction = directions[index % directions.length];
+        
                 gsap.to(piece.pos, {
-                  x: p.random(-500, p.windowWidth + 500),
-                  y: p.random(-500, p.windowHeight + 500),
+                  x: direction.x,
+                  y: direction.y,
                   duration: 2,
                   ease: "power2.inOut",
                 });
               });
-
+        
               // Show the modal after the animation completes
               setTimeout(() => {
                 setShowModal(true);
@@ -342,6 +353,7 @@ const Puzzle = () => {
             }, 500);
           }
         }
+        
 
         public updatePosition(x: number, y: number, boxWidth: number, boxHeight: number) {
           this.x = x;
@@ -361,7 +373,7 @@ const Puzzle = () => {
 
   return (
     <div>
-      <div ref={canvasRef} className="h-screen bg-gray-900 w-screen"></div>
+      <div ref={canvasRef} className="h-screen bg-black w-screen"></div>
       {showModal && (
         <div className="absolute inset-0 z-50 flex items-center justify-center">
           <div className="bg-white p-8 rounded-lg shadow-lg">

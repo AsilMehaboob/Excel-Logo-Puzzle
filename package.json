@@ -9,15 +9,17 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@tabler/icons-react": "^3.14.0",
     "animejs": "^3.2.2",
     "aos": "^2.3.4",
     "canvas-confetti": "^1.9.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "fortawesome": "^0.0.1-security",
-    "framer-motion": "^11.3.31",
+    "framer-motion": "^11.5.4",
     "gsap": "^3.12.5",
     "lucide-react": "^0.437.0",
+    "mini-svg-data-uri": "^1.4.4",
     "next": "14.2.5",
     "p5": "^1.10.0",
     "react": "^18",
