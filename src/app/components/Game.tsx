@@ -174,10 +174,10 @@ const Puzzle = () => {
           const pieceWidth = this.boxWidth / this.side;
           const pieceHeight = this.boxHeight / this.side;
           const manualPositions = [
-            p.createVector(this.x + pieceWidth * 0.909, this.y + pieceHeight * 0.705),
-            p.createVector(this.x + pieceWidth * 1.368, this.y + pieceHeight * 0.7),
-            p.createVector(this.x + pieceWidth * 0.800, this.y + pieceHeight * 1.203),
-            p.createVector(this.x + pieceWidth * 1.360, this.y + pieceHeight * 1.203),
+            p.createVector(this.x + pieceWidth * 0.909, this.y + pieceHeight * 0.905),
+            p.createVector(this.x + pieceWidth * 1.368, this.y + pieceHeight * 0.9),
+            p.createVector(this.x + pieceWidth * 0.800, this.y + pieceHeight * 1.403),
+            p.createVector(this.x + pieceWidth * 1.360, this.y + pieceHeight * 1.403),
           ];
         
           for (let i = 0; i < this.side * this.side; i++) {
