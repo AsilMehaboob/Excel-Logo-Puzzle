@@ -3,8 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import p5 from "p5";
 import gsap from "gsap";
-import RefreshButton from "./RefreshButton";
-import Confetti from "./Confetti";
+
 
 interface Piece {
   pos: p5.Vector;
@@ -19,6 +18,43 @@ const Puzzle = () => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [showModal, setShowModal] = useState(false);
   const [confettiTriggered, setConfettiTriggered] = useState(false);
+  const [countdown, setCountdown] = useState("");
+  const launchDate = new Date("2024-09-10T15:00:00"); // Set your launch date here
+
+  // Countdown Timer Logic
+  // Countdown Timer Logic
+  useEffect(() => {
+    const updateCountdown = () => {
+      const now = new Date().getTime(); // Get current time
+      const timeLeft = launchDate.getTime() - now; // Time difference in milliseconds
+  
+      // If the countdown is finished
+      if (timeLeft <= 0) {
+        setCountdown("Logo is revealed!");
+        return;
+      }
+  
+      // Calculate hours, minutes, and seconds remaining
+      const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+      const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+  
+      // Update the countdown state
+      setCountdown(`${hours} : ${minutes} : ${seconds} `);
+    };
+  
+    // Start the countdown interval
+    const interval = setInterval(updateCountdown, 1000);
+  
+    // Call once immediately to set initial value
+    updateCountdown();
+  
+    // Cleanup the interval on component unmount
+    return () => clearInterval(interval);
+  }, []);
+  
+  
+
 
   useEffect(() => {
     const sketch = (p: p5) => {
@@ -33,48 +69,7 @@ const Puzzle = () => {
           "/images/2023_3.svg",
           "/images/2023_4.svg",
         ],
-        2022: [
-          "/images/2022_1.svg",
-          "/images/2022_2.svg",
-          "/images/2022_3.svg",
-          "/images/2022_4.svg",
-        ],
-        2021: [
-          "/images/2021_1.svg",
-          "/images/2021_2.svg",
-          "/images/2021_3.svg",
-          "/images/2021_4.svg",
-        ],
-        2020: [
-          "/images/2020_1.svg",
-          "/images/2020_2.svg",
-          "/images/2020_3.svg",
-          "/images/2020_4.svg",
-        ],
-        2019: [
-          "/images/2019_1.svg",
-          "/images/2019_2.svg",
-          "/images/2019_3.svg",
-          "/images/2019_4.svg",
-        ],
-        2018: [
-          "/images/2018_1.svg",
-          "/images/2018_2.svg",
-          "/images/2018_3.svg",
-          "/images/2018_4.svg",
-        ],
-        2017: [
-          "/images/2017_1.svg",
-          "/images/2017_2.svg",
-          "/images/2017_3.svg",
-          "/images/2017_4.svg",
-        ],
-        2016: [
-          "/images/2016_1.svg",
-          "/images/2016_2.svg",
-          "/images/2016_3.svg",
-          "/images/2016_4.svg",
-        ],
+        // Add the rest of your image sets here...
       };
 
       p.preload = () => {
@@ -175,7 +170,7 @@ const Puzzle = () => {
 
         private placePieces(imgs: p5.Image[]) {
           this.pieces = [];
-        
+
           const pieceWidth = this.boxWidth / this.side;
           const pieceHeight = this.boxHeight / this.side;
           const manualPositions = [
@@ -184,14 +179,14 @@ const Puzzle = () => {
             p.createVector(this.x + pieceWidth * 0.800, this.y + pieceHeight * 1.303),
             p.createVector(this.x + pieceWidth * 1.360, this.y + pieceHeight * 1.303),
           ];
-        
+
           for (let i = 0; i < this.side * this.side; i++) {
             const img = imgs[i];
             const correctPos = manualPositions[i];
-        
+
             const aspectRatio = img.width / img.height;
             let scaledWidth, scaledHeight;
-        
+
             if (aspectRatio > 1) {
               scaledWidth = pieceWidth;
               scaledHeight = pieceWidth / aspectRatio;
@@ -199,10 +194,10 @@ const Puzzle = () => {
               scaledHeight = pieceHeight;
               scaledWidth = pieceHeight * aspectRatio;
             }
-        
+
             const isAbove = i < Math.floor(this.side * this.side / 2);
             const pos = this.randomPos(scaledWidth, scaledHeight, isAbove);
-        
+
             const piece = {
               pos,
               img,
@@ -211,9 +206,9 @@ const Puzzle = () => {
               scaledWidth: scaledWidth * 0.5, // Start smaller
               scaledHeight: scaledHeight * 0.5, // Start smaller
             };
-        
+
             this.pieces.push(piece);
-        
+
             // Animate the piece's width and height for the bounce effect
             gsap.to(piece, {
               scaledWidth: scaledWidth,
@@ -224,8 +219,6 @@ const Puzzle = () => {
             });
           }
         }
-        
-        
 
         private randomPos(pieceWidth: number, pieceHeight: number, isAbove: boolean) {
           const marginX = Math.min(
@@ -289,104 +282,116 @@ const Puzzle = () => {
         }
 
         public mouseDragged(x: number, y: number) {
-          if (this.isDragging && this.dragPiece) {
-            let m = p.createVector(x, y);
-            this.dragPiece.pos.set(m).add(this.clickOffset);
+          if (this.isDragging) {
+            let dragpos = p.createVector(x, y);
+            this.dragPiece!.pos = p5.Vector.add(dragpos, this.clickOffset);
           }
         }
 
         public mouseReleased() {
-          if (this.isDragging && this.dragPiece) {
+          if (this.dragPiece && this.isDragging) {
+            const distToCorrectPos = this.dragPiece!.pos.dist(this.dragPiece!.correctPos);
+            if (distToCorrectPos < 51) {
+              this.dragPiece!.pos = this.dragPiece!.correctPos.copy();
+            }
             this.isDragging = false;
-            this.snapTo(this.dragPiece);
-            this.checkEndGame();
-          }
-        }
-
-        private putOnTop(index: number) {
-          this.pieces.splice(index, 1);
-          if (this.dragPiece) {
-            this.pieces.push(this.dragPiece);
-          }
-        }
-
-        private snapTo(p: Piece) {
-          if (p.pos.dist(p.correctPos) < Math.min(p.scaledWidth, p.scaledHeight) / 2) {
-            p.pos = p.correctPos.copy();
-          }
-        }
+            this.dragPiece = null;
         
-
-        private checkEndGame() {
-          let isComplete = this.pieces.every((p) => p.pos.equals(p.correctPos));
+            if (this.isComplete()) {
+              this.canPlay = false;
         
-          if (isComplete && this.canPlay) {
-            this.canPlay = false;
-        
-            setTimeout(() => {
-              // Define the directions for scattering
-              const directions = [
-                { x: -500, y: -500 }, // Top-left
-                { x: p.windowWidth + 500, y: -500 }, // Top-right
-                { x: -500, y: p.windowHeight + 500 }, // Bottom-left
-                { x: p.windowWidth + 500, y: p.windowHeight + 500 }, // Bottom-right
-              ];
-        
-              // Trigger flying off-screen animation for each piece
-              this.pieces.forEach((piece, index) => {
-                // Assign each piece to scatter in one of the four directions
-                const direction = directions[index % directions.length];
-        
-                gsap.to(piece.pos, {
-                  x: direction.x,
-                  y: direction.y,
-                  duration: 2,
-                  ease: "power2.inOut",
-                });
+              // GSAP animation to disperse pieces out of the display
+              const tl = gsap.timeline({
+                onComplete: () => {
+                  // Show the modal only after the pieces have fully dispersed
+                  setShowModal(true);
+                }
               });
         
-              // Show the modal after the animation completes
-              setTimeout(() => {
-                setShowModal(true);
-                setConfettiTriggered(true);
-              }, 2000);
-            }, 500);
+              this.pieces.forEach((piece, i) => {
+                const direction = i % 4; // 4 different directions
+                let targetX = piece.pos.x;
+                let targetY = piece.pos.y;
+        
+                switch (direction) {
+                  case 0: // Move to the top
+                    targetY = -piece.scaledHeight * 2;
+                    break;
+                  case 1: // Move to the right
+                    targetX = p.windowWidth + piece.scaledWidth * 2;
+                    break;
+                  case 2: // Move to the bottom
+                    targetY = p.windowHeight + piece.scaledHeight * 2;
+                    break;
+                  case 3: // Move to the left
+                    targetX = -piece.scaledWidth * 2;
+                    break;
+                }
+        
+                // Add animation to the timeline with staggered delay
+                tl.to(piece.pos, {
+                  x: targetX,
+                  y: targetY,
+                  duration: 2,
+                  ease: "power3.inOut",
+                }, i * 0.1); // Delay each piece slightly for a staggered effect
+              });
+            }
           }
         }
         
+        
 
-        public updatePosition(x: number, y: number, boxWidth: number, boxHeight: number) {
+        private putOnTop(index: number) {
+          const removed = this.pieces.splice(index, 1)[0];
+          this.pieces.push(removed);
+        }
+
+        public updatePosition(
+          x: number,
+          y: number,
+          boxWidth: number,
+          boxHeight: number
+        ) {
           this.x = x;
           this.y = y;
           this.boxWidth = boxWidth;
           this.boxHeight = boxHeight;
+          this.placePieces(this.imgs);
+        }
+
+        private isComplete() {
+          return this.pieces.every((p) => p.pos.equals(p.correctPos));
         }
       }
     };
 
-    const myp5 = new p5(sketch);
+    const p5Instance = new p5(sketch);
 
     return () => {
-      myp5.remove();
+      p5Instance.remove();
     };
-  }, []);
+  }, [confettiTriggered]);
 
   return (
-    <div>
-      <div ref={canvasRef} className="h-screen bg-black w-screen"></div>
-      {showModal && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center">
-          <div className="bg-white p-8 rounded-lg shadow-lg">
-            <h2 className="text-xl font-bold mb-4">Puzzle Completed!</h2>
-            <RefreshButton />
-          </div>
-        </div>
-      )}
-      {confettiTriggered && <Confetti trigger={false} onComplete={function (): void {
-        throw new Error("Function not implemented.");
-      } } />}
+    <div ref={canvasRef} className="relative w-full h-screen">
+  
+
+  {showModal && (
+    <div className="absolute inset-0 bg-opacity-60 flex items-center justify-center">
+      <div className="bg-white bg-opacity-30 backdrop-blur-md rounded-lg p-8 text-center max-w-md shadow-lg border border-white border-opacity-30">
+        <h1 className="text-3xl font-bold mb-4">
+          Puzzle completed! You've uncovered the past—now brace yourself,
+          the new logo will be revealed in:
+        </h1>
+        <p className="text-2xl font-semibold mb-4">{countdown}</p>
+      </div>
     </div>
+  )}
+</div>
+
   );
+  
 };
 
 export default Puzzle;

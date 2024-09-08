@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import p5 from "p5";
-import RefreshButton from "./RefreshButton";
+import gsap from "gsap";
 import Confetti from "./Confetti";
 
 interface Piece {
@@ -25,22 +25,61 @@ const Puzzle = () => {
       let images: p5.Image[] = [];
       let selectedImages: string[] = [];
 
-      const set1 = [
-        "/images/1.png",
-        "/images/2.png",
-        "/images/3.png",
-        "/images/4.png",
-      ];
-
-      const set2 = [
-        "/images/1.png",
-        "/images/2.png",
-        "/images/3.png",
-        "/images/4.png",
-      ];
+      const imageSets = {
+        2023: [
+          "/images/2023_1.svg",
+          "/images/2023_2.svg",
+          "/images/2023_3.svg",
+          "/images/2023_4.svg",
+        ],
+        2022: [
+          "/images/2022_1.svg",
+          "/images/2022_2.svg",
+          "/images/2022_3.svg",
+          "/images/2022_4.svg",
+        ],
+        2021: [
+          "/images/2021_1.svg",
+          "/images/2021_2.svg",
+          "/images/2021_3.svg",
+          "/images/2021_4.svg",
+        ],
+        2020: [
+          "/images/2020_1.svg",
+          "/images/2020_2.svg",
+          "/images/2020_3.svg",
+          "/images/2020_4.svg",
+        ],
+        2019: [
+          "/images/2019_1.svg",
+          "/images/2019_2.svg",
+          "/images/2019_3.svg",
+          "/images/2019_4.svg",
+        ],
+        2018: [
+          "/images/2018_1.svg",
+          "/images/2018_2.svg",
+          "/images/2018_3.svg",
+          "/images/2018_4.svg",
+        ],
+        2017: [
+          "/images/2017_1.svg",
+          "/images/2017_2.svg",
+          "/images/2017_3.svg",
+          "/images/2017_4.svg",
+        ],
+        2016: [
+          "/images/2016_1.svg",
+          "/images/2016_2.svg",
+          "/images/2016_3.svg",
+          "/images/2016_4.svg",
+        ],
+      };
 
       p.preload = () => {
-        selectedImages = Math.random() > 0.5 ? set1 : set2;
+        const yearKeys = Object.keys(imageSets);
+        const randomYear = yearKeys[Math.floor(Math.random() * yearKeys.length)];
+        selectedImages = imageSets[randomYear as unknown as keyof typeof imageSets];
         selectedImages.forEach((url) => {
           images.push(p.loadImage(url));
         });
@@ -135,57 +174,59 @@ const Puzzle = () => {
 
         private placePieces(imgs: p5.Image[]) {
           this.pieces = [];
-
+        
           const pieceWidth = this.boxWidth / this.side;
           const pieceHeight = this.boxHeight / this.side;
           const manualPositions = [
-            p.createVector(this.x + pieceWidth * 0.6, this.y + pieceHeight * 0.69),
-            p.createVector(this.x + pieceWidth * 1.32, this.y + pieceHeight * 0.60),
-            p.createVector(this.x + pieceWidth * 0.69, this.y + pieceHeight * 1.41),
-            p.createVector(this.x + pieceWidth * 1.405, this.y + pieceHeight * 1.32),
+            p.createVector(this.x + pieceWidth * 0.909, this.y + pieceHeight * 0.805),
+            p.createVector(this.x + pieceWidth * 1.368, this.y + pieceHeight * 0.8),
+            p.createVector(this.x + pieceWidth * 0.800, this.y + pieceHeight * 1.303),
+            p.createVector(this.x + pieceWidth * 1.360, this.y + pieceHeight * 1.303),
           ];
-
+        
           for (let i = 0; i < this.side * this.side; i++) {
-            const row = Math.floor(i / this.side);
-            const col = i % this.side;
-
-            // Calculate the center of the correct position for the piece
-            const correctPos = manualPositions[i];
-
             const img = imgs[i];
+            const correctPos = manualPositions[i];
+        
             const aspectRatio = img.width / img.height;
             let scaledWidth, scaledHeight;
-
+        
             if (aspectRatio > 1) {
-              // Image is wider than tall
               scaledWidth = pieceWidth;
               scaledHeight = pieceWidth / aspectRatio;
             } else {
-              // Image is taller than wide or square
               scaledHeight = pieceHeight;
               scaledWidth = pieceHeight * aspectRatio;
             }
-
-            // Randomize initial position
+        
             const isAbove = i < Math.floor(this.side * this.side / 2);
             const pos = this.randomPos(scaledWidth, scaledHeight, isAbove);
-
-            this.pieces.push({
+        
+            const piece = {
               pos,
               img,
               i,
               correctPos,
-              scaledWidth,
-              scaledHeight,
+              scaledWidth: scaledWidth * 0.5, // Start smaller
+              scaledHeight: scaledHeight * 0.5, // Start smaller
+            };
+        
+            this.pieces.push(piece);
+        
+            // Animate the piece's width and height for the bounce effect
+            gsap.to(piece, {
+              scaledWidth: scaledWidth,
+              scaledHeight: scaledHeight,
+              duration: 1.2,
+              ease: "bounce.out",
+              delay: i * 0.1,
             });
           }
         }
+        
+        
 
-        private randomPos(
-          pieceWidth: number,
-          pieceHeight: number,
-          isAbove: boolean
-        ) {
+        private randomPos(pieceWidth: number, pieceHeight: number, isAbove: boolean) {
           const marginX = Math.min(
             50,
             (p.windowWidth - this.boxWidth) / 2 - pieceWidth
@@ -202,25 +243,9 @@ const Puzzle = () => {
               p.windowWidth - pieceWidth
             )
           );
-          let posY;
-
-          if (isAbove) {
-            posY = p.random(
-              Math.max(0, this.y - marginY - pieceHeight),
-              Math.max(0, this.y - marginY)
-            );
-          } else {
-            posY = p.random(
-              Math.min(
-                p.windowHeight - pieceHeight,
-                this.y + this.boxHeight + marginY
-              ),
-              Math.min(
-                p.windowHeight - pieceHeight,
-                this.y + this.boxHeight + marginY + pieceHeight
-              )
-            );
-          }
+          let posY = isAbove
+            ? p.random(Math.max(0, this.y - marginY - pieceHeight), Math.max(0, this.y - marginY))
+            : p.random(Math.min(p.windowHeight - pieceHeight, this.y + this.boxHeight + marginY), Math.min(p.windowHeight - pieceHeight, this.y + this.boxHeight + marginY + pieceHeight));
 
           return p.createVector(posX, posY);
         }
@@ -285,76 +310,88 @@ const Puzzle = () => {
         }
 
         private snapTo(p: Piece) {
-          // Align the piece's center with the center of its correct position
-          if (
-            p.pos.dist(p.correctPos) <
-            Math.min(p.scaledWidth, p.scaledHeight) / 2
-          ) {
+          if (p.pos.dist(p.correctPos) < Math.min(p.scaledWidth, p.scaledHeight) / 2) {
             p.pos = p.correctPos.copy();
           }
         }
+        
 
         private checkEndGame() {
-          let correctPieces = 0;
-          this.pieces.forEach((p) => {
-            if (p.pos.equals(p.correctPos)) {
-              correctPieces++;
-            }
-          });
-          if (correctPieces === this.side * this.side) {
+          let isComplete = this.pieces.every((p) => p.pos.equals(p.correctPos));
+        
+          if (isComplete && this.canPlay) {
             this.canPlay = false;
-            setShowModal(true);
-            setConfettiTriggered(true);
+        
+            setTimeout(() => {
+              // Define the directions for scattering
+              const directions = [
+                { x: -500, y: -500 }, // Top-left
+                { x: p.windowWidth + 500, y: -500 }, // Top-right
+                { x: -500, y: p.windowHeight + 500 }, // Bottom-left
+                { x: p.windowWidth + 500, y: p.windowHeight + 500 }, // Bottom-right
+              ];
+        
+              // Trigger flying off-screen animation for each piece
+              this.pieces.forEach((piece, index) => {
+                // Assign each piece to scatter in one of the four directions
+                const direction = directions[index % directions.length];
+        
+                gsap.to(piece.pos, {
+                  x: direction.x,
+                  y: direction.y,
+                  duration: 2,
+                  ease: "power2.inOut",
+                });
+              });
+        
+              // Show the modal after the animation completes
+              setTimeout(() => {
+                // Trigger glow effect on puzzle completion
+                gsap.to(canvasRef.current, {
+                  duration: 1.5,
+                  ease: "power2.out",
+                  boxShadow: "0px 0px 30px 10px rgba(255, 255, 0, 0.8)",
+                  repeat: -1,
+                  yoyo: true,
+                });
+        
+                setShowModal(true);
+                setConfettiTriggered(true);
+              }, 2000);
+            }, 500);
           }
         }
 
-        public updatePosition(
-          x: number,
-          y: number,
-          boxWidth: number,
-          boxHeight: number
-        ) {
+
+        public updatePosition(x: number, y: number, boxWidth: number, boxHeight: number) {
           this.x = x;
           this.y = y;
           this.boxWidth = boxWidth;
           this.boxHeight = boxHeight;
-          this.placePieces(this.imgs);
         }
       }
     };
 
-    const p5Instance = new p5(sketch);
+    const myp5 = new p5(sketch);
 
     return () => {
-      p5Instance.remove();
+      myp5.remove();
     };
   }, []);
 
-  const closeModal = () => {
-    setShowModal(false);
-  };
-
   return (
-    <div className="bg-violet-400">
-      {confettiTriggered && <Confetti trigger={false} onComplete={function (): void {
-        throw new Error("Function not implemented.");
-      } } />}
-      <div ref={canvasRef}></div>
+    <div className="handjet-uniquifier">
+      <div ref={canvasRef} className="h-screen w-screen"></div>
       {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-8 rounded shadow">
-            <h2 className="text-2xl mb-4">Congratulations!</h2>
-            <p className="mb-4">You've completed the puzzle!</p>
-            <button
-              className="bg-blue-500 text-white py-2 px-4 rounded"
-              onClick={closeModal}
-            >
-              Close
-            </button>
+        <div className="absolute handjet-uniquifier inset-0 z-50 flex items-center justify-center">
+          <div className="bg-white p-8 rounded-lg shadow-lg">
+            <h2 className="text-xl handjet-uniquifier font-bold mb-4">Puzzle Completed!</h2>
           </div>
         </div>
       )}
-      <RefreshButton />
+      {confettiTriggered && <Confetti trigger={false} onComplete={function (): void {
+        throw new Error("Function not implemented.");
+      } } />}
     </div>
   );
 };

@@ -1,7 +1,5 @@
 const defaultTheme = require("tailwindcss/defaultTheme");
-
 const svgToDataUri = require("mini-svg-data-uri");
-
 const colors = require("tailwindcss/colors");
 const {
   default: flattenColorPalette,
@@ -12,7 +10,15 @@ module.exports = {
   content: ["./src/**/*.{ts,tsx}"],
   darkMode: "class",
   theme: {
-    // rest of the code
+    fontFamily: {
+      handjet: ['Handjet', 'sans-serif'], // Adding Handjet font
+    },
+    extend: {
+      backgroundImage: {
+        'desktop': "url('/images/background-desktop.png')",
+        'mobile': "url('/images/background-mobile.png')",
+      },
+    },
   },
   plugins: [
     addVariablesForColors,
