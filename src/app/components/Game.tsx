@@ -170,7 +170,7 @@ const Puzzle = () => {
 
         private placePieces(imgs: p5.Image[]) {
           this.pieces = [];
-
+        
           const pieceWidth = this.boxWidth / this.side;
           const pieceHeight = this.boxHeight / this.side;
           const manualPositions = [
@@ -179,14 +179,14 @@ const Puzzle = () => {
             p.createVector(this.x + pieceWidth * 0.800, this.y + pieceHeight * 1.303),
             p.createVector(this.x + pieceWidth * 1.360, this.y + pieceHeight * 1.303),
           ];
-
+        
           for (let i = 0; i < this.side * this.side; i++) {
             const img = imgs[i];
             const correctPos = manualPositions[i];
-
+        
             const aspectRatio = img.width / img.height;
             let scaledWidth, scaledHeight;
-
+        
             if (aspectRatio > 1) {
               scaledWidth = pieceWidth;
               scaledHeight = pieceWidth / aspectRatio;
@@ -194,32 +194,33 @@ const Puzzle = () => {
               scaledHeight = pieceHeight;
               scaledWidth = pieceHeight * aspectRatio;
             }
-
+        
             const isAbove = i < Math.floor(this.side * this.side / 2);
             const pos = this.randomPos(scaledWidth, scaledHeight, isAbove);
-
+        
             const piece = {
               pos,
               img,
               i,
               correctPos,
-              scaledWidth: scaledWidth * 0.5, // Start smaller
-              scaledHeight: scaledHeight * 0.5, // Start smaller
+              // Increase the initial size from 0.5 to 0.75
+              scaledWidth: scaledWidth * 0.75, // Adjust this value to increase the size
+              scaledHeight: scaledHeight * 0.75, // Adjust this value to increase the size
             };
-
+        
             this.pieces.push(piece);
-
-            // Animate the piece's width and height for the bounce effect
+        
+            // Adjust the final scaling in the GSAP animation
             gsap.to(piece, {
-              scaledWidth: scaledWidth,
-              scaledHeight: scaledHeight,
+              scaledWidth: scaledWidth, // Final width
+              scaledHeight: scaledHeight, // Final height
               duration: 1.2,
               ease: "bounce.out",
               delay: i * 0.1,
             });
           }
         }
-
+        
         private randomPos(pieceWidth: number, pieceHeight: number, isAbove: boolean) {
           const marginX = Math.min(
             50,
