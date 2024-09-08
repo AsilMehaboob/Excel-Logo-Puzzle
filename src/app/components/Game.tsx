@@ -247,7 +247,7 @@ const Puzzle = () => {
         public draw() {
           p.noFill();
           p.stroke(255);
-          p.rect(this.x, this.y, this.boxWidth, this.boxHeight);
+          
 
           this.pieces.forEach((r) =>
             p.image(r.img, r.pos.x - r.scaledWidth / 2, r.pos.y - r.scaledHeight / 2, r.scaledWidth, r.scaledHeight)
@@ -381,7 +381,7 @@ const Puzzle = () => {
     <div className="absolute inset-0 bg-opacity-60 flex items-center justify-center">
       <div className="bg-white bg-opacity-30 backdrop-blur-md rounded-lg p-8 text-center max-w-md shadow-lg border border-white border-opacity-30">
         <h1 className="text-3xl font-bold mb-4">
-          Puzzle completed! You've uncovered the past—now brace yourself,
+          Puzzle completed!<br/> You've uncovered the <br/> past—now brace yourself,
           the new logo will be revealed in:
         </h1>
         <p className="text-2xl font-semibold mb-4">{countdown}</p>
