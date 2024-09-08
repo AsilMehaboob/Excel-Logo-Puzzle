@@ -170,14 +170,14 @@ const Puzzle = () => {
 
         private placePieces(imgs: p5.Image[]) {
           this.pieces = [];
-        
+          
           const pieceWidth = this.boxWidth / this.side;
           const pieceHeight = this.boxHeight / this.side;
           const manualPositions = [
-            p.createVector(this.x + pieceWidth * 0.909, this.y + pieceHeight * 0.805),
-            p.createVector(this.x + pieceWidth * 1.368, this.y + pieceHeight * 0.8),
-            p.createVector(this.x + pieceWidth * 0.800, this.y + pieceHeight * 1.303),
-            p.createVector(this.x + pieceWidth * 1.360, this.y + pieceHeight * 1.303),
+            p.createVector(this.x + pieceWidth * 0.909, this.y + pieceHeight * 0.705),
+            p.createVector(this.x + pieceWidth * 1.368, this.y + pieceHeight * 0.7),
+            p.createVector(this.x + pieceWidth * 0.800, this.y + pieceHeight * 1.203),
+            p.createVector(this.x + pieceWidth * 1.360, this.y + pieceHeight * 1.203),
           ];
         
           for (let i = 0; i < this.side * this.side; i++) {
@@ -203,23 +203,24 @@ const Puzzle = () => {
               img,
               i,
               correctPos,
-              // Increase the initial size from 0.5 to 0.75
-              scaledWidth: scaledWidth * 0.75, // Adjust this value to increase the size
-              scaledHeight: scaledHeight * 0.75, // Adjust this value to increase the size
+              // Increase the size factor from 0.75 to 1 (or higher, like 1.1 or 1.2)
+              scaledWidth: scaledWidth * 1,  // Adjust this value to increase the size
+              scaledHeight: scaledHeight * 1,  // Adjust this value to increase the size
             };
         
             this.pieces.push(piece);
         
             // Adjust the final scaling in the GSAP animation
             gsap.to(piece, {
-              scaledWidth: scaledWidth, // Final width
-              scaledHeight: scaledHeight, // Final height
+              scaledWidth: scaledWidth,  // Final width
+              scaledHeight: scaledHeight,  // Final height
               duration: 1.2,
               ease: "bounce.out",
               delay: i * 0.1,
             });
           }
         }
+        
         
         private randomPos(pieceWidth: number, pieceHeight: number, isAbove: boolean) {
           const marginX = Math.min(
