@@ -3,6 +3,10 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Preloader from '../app/components/Preloader'; // Adjust path to match your folder structure
 import './globals.css'; // Your global styles
+import localFont from 'next/font/local'
+
+
+
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);

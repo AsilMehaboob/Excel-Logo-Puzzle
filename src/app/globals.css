@@ -2,16 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom Handjet Font Class */
-.handjet-uniquifier {
-  font-family: "Handjet", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 400;
+/* globals.css */
+
+@font-face {
+  font-family: 'SatoshiBold';
+  src: url('/Satoshi-Bold.ttf') format('truetype');
+  font-weight: bold;
   font-style: normal;
-  font-variation-settings: 
-    "ELGR" 1, 
-    "ELSH" 2;
 }
+
+html, body {
+  font-family: 'SatoshiBold', sans-serif;
+}
+
 
 .text-transparent {
   -webkit-text-fill-color: transparent;

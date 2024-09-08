@@ -39,8 +39,13 @@ const Puzzle = () => {
       const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
   
+      // Format as two digits
+      const formattedHours = String(hours).padStart(2, '0');
+      const formattedMinutes = String(minutes).padStart(2, '0');
+      const formattedSeconds = String(seconds).padStart(2, '0');
+  
       // Update the countdown state
-      setCountdown(`${hours} : ${minutes} : ${seconds} `);
+      setCountdown(`${formattedHours} : ${formattedMinutes} : ${formattedSeconds}`);
     };
   
     // Start the countdown interval
@@ -52,6 +57,7 @@ const Puzzle = () => {
     // Cleanup the interval on component unmount
     return () => clearInterval(interval);
   }, []);
+  
   
   
 
@@ -377,20 +383,19 @@ const Puzzle = () => {
 
   return (
     <div ref={canvasRef} className="relative w-full h-screen">
-  
-
   {showModal && (
     <div className="absolute inset-0 bg-opacity-60 flex items-center justify-center">
-      <div className="bg-white bg-opacity-30 backdrop-blur-md rounded-lg p-8 text-center max-w-md shadow-lg border border-white border-opacity-30">
-        <h1 className="text-3xl font-bold mb-4">
+      <div className="bg-white bg-opacity-30 backdrop-blur-md rounded-lg p-4 md:p-8 text-center max-w-md mx-4 sm:mx-8 shadow-lg border border-white border-opacity-30">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4">
           Puzzle completed!<br/> You've uncovered the <br/> past—now brace yourself,
           the new logo will be revealed in:
         </h1>
-        <p className="text-2xl font-semibold mb-4">{countdown}</p>
+        <p className="text-lg sm:text-xl md:text-2xl font-semibold mb-4">{countdown}</p>
       </div>
     </div>
   )}
 </div>
+
 
   );
   

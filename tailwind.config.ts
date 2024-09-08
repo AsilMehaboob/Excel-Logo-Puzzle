@@ -11,7 +11,8 @@ module.exports = {
   darkMode: "class",
   theme: {
     fontFamily: {
-      handjet: ['Handjet', 'sans-serif'], // Adding Handjet font
+      handjet: ['Handjet', 'sans-serif'], // Keeping Handjet font
+      satoshi: ['SatoshiBold', 'sans-serif'], // Adding SatoshiBold font
     },
     extend: {
       backgroundImage: {
