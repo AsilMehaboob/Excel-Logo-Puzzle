@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import p5 from "p5";
 import gsap from "gsap";
+import { motion, AnimatePresence } from 'framer-motion';
 
 
 interface Piece {
@@ -18,6 +19,7 @@ const Puzzle = () => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [showModal, setShowModal] = useState(false);
   const [confettiTriggered, setConfettiTriggered] = useState(false);
+  const [showCountdown, setShowCountdown] = useState(false);
   const [countdown, setCountdown] = useState("");
   const launchDate = new Date("2024-09-10T15:00:00"); // Set your launch date here
 
@@ -308,40 +310,29 @@ const Puzzle = () => {
             if (this.isComplete()) {
               this.canPlay = false;
         
-              // GSAP animation to disperse pieces out of the display
+              // GSAP animation to make the pieces fall off the screen and spread horizontally
               const tl = gsap.timeline({
                 onComplete: () => {
-                  // Show the modal only after the pieces have fully dispersed
+                  // Show the modal only after the pieces have fully fallen
                   setShowModal(true);
                 }
               });
         
               this.pieces.forEach((piece, i) => {
-                const direction = i % 4; // 4 different directions
-                let targetX = piece.pos.x;
-                let targetY = piece.pos.y;
+                // Set the target position to fall off the screen
+                const targetY = p.windowHeight + piece.scaledHeight * 2;
         
-                switch (direction) {
-                  case 0: // Move to the top
-                    targetY = -piece.scaledHeight * 2;
-                    break;
-                  case 1: // Move to the right
-                    targetX = p.windowWidth + piece.scaledWidth * 2;
-                    break;
-                  case 2: // Move to the bottom
-                    targetY = p.windowHeight + piece.scaledHeight * 2;
-                    break;
-                  case 3: // Move to the left
-                    targetX = -piece.scaledWidth * 2;
-                    break;
-                }
+                // Add a random horizontal offset to spread the pieces further apart
+                const randomOffsetX = (Math.random() - 0.5) * 600; // Adjust this value to control how far apart the pieces fall
+                const targetX = piece.pos.x + randomOffsetX;
         
                 // Add animation to the timeline with staggered delay
                 tl.to(piece.pos, {
-                  x: targetX,
-                  y: targetY,
+                  x: targetX, // Move randomly left or right
+                  y: targetY, // Move down off the screen
+                  rotation: Math.random() * 360, // Optionally, add rotation for a dynamic effect
                   duration: 2,
-                  ease: "power3.inOut",
+                  ease: "power3.inOut", // Smooth falling effect
                 }, i * 0.1); // Delay each piece slightly for a staggered effect
               });
             }
@@ -381,23 +372,91 @@ const Puzzle = () => {
     };
   }, [confettiTriggered]);
 
+  const modalVariants = {
+    hidden: {
+      opacity: 0,
+      scale: 0.8,
+    },
+    visible: {
+      opacity: 1,
+      scale: 1,
+    },
+    exit: {
+      opacity: 0,
+      scale: 0.8,
+    },
+  };
+  
+  const letterVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0 },
+  };
+  
+  const countdownVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0 },
+  };
+  
+  const splitTextIntoLetters = (text: string) => {
+    return text.split('').map((char, index) => (
+      <motion.span
+        key={index}
+        variants={letterVariants}
+        initial="hidden"
+        animate="visible"
+        exit="hidden"
+        transition={{ duration: 0.05, delay: index * 0.05 }}
+      >
+        {char}
+      </motion.span>
+    ));
+  };
+  
+  useEffect(() => {
+    if (showModal) {
+      const timer = setTimeout(() => {
+        setShowCountdown(true);
+      }, 2000); // Adjust this delay to match the duration of your text animation
+  
+      return () => clearTimeout(timer);
+    }
+  }, [showModal]);
+  
   return (
     <div ref={canvasRef} className="relative w-full h-screen">
-  {showModal && (
-    <div className="absolute inset-0 bg-opacity-60 flex items-center justify-center">
-      <div className="bg-white bg-opacity-30 backdrop-blur-md rounded-lg p-4 md:p-8 text-center max-w-md mx-4 sm:mx-8 shadow-lg border border-white border-opacity-30">
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4">
-          Puzzle completed!<br/> You've uncovered the <br/> past—now brace yourself,
-          the new logo will be revealed in:
-        </h1>
-        <p className="text-lg sm:text-xl md:text-2xl font-semibold mb-4">{countdown}</p>
-      </div>
+      <AnimatePresence>
+        {showModal && (
+          <motion.div
+            className="absolute inset-0 bg-opacity-60 flex items-center justify-center"
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            variants={modalVariants}
+            transition={{ duration: 0.5, ease: 'easeInOut' }}
+          >
+            <div className="bg-white bg-opacity-30 backdrop-blur-md rounded-lg p-4 md:p-8 text-center max-w-md mx-4 sm:mx-8 shadow-lg border border-white border-opacity-30">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4">
+                {splitTextIntoLetters("Puzzle completed! You've uncovered the past—now brace yourself, the new logo will be revealed in:")}
+              </h1>
+              {showCountdown && (
+                <motion.p
+                  className="text-lg sm:text-xl md:text-2xl font-semibold mb-4"
+                  initial="hidden"
+                  animate="visible"
+                  exit="hidden"
+                  variants={countdownVariants}
+                  transition={{ duration: 0.5, ease: 'easeInOut' }}
+                >
+                  {splitTextIntoLetters(countdown)}
+                </motion.p>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
-  )}
-</div>
-
-
   );
+
   
 };
 
