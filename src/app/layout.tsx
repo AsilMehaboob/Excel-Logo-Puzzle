@@ -3,10 +3,6 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Preloader from '../app/components/Preloader'; // Adjust path to match your folder structure
 import './globals.css'; // Your global styles
-import localFont from 'next/font/local'
-
-
-
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
@@ -22,15 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <Head>
         <title>My Puzzle Game</title>
       </Head>
-      <body
-        style={{
-          backgroundImage: "url('/images/background.jpg')",
-          backgroundSize: 'cover', // Ensures the image covers the entire body
-          backgroundPosition: 'center', // Centers the image
-          backgroundRepeat: 'no-repeat', // Prevents image from repeating
-          minHeight: '100vh' // Ensures the background covers the full viewport height
-        }}
-      >
+      <body>
         {loading ? (
           <Preloader /> // Show preloader while loading
         ) : (

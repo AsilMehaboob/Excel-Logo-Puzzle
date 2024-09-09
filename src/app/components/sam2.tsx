@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import p5 from "p5";
 import gsap from "gsap";
-import { motion, AnimatePresence } from "framer-motion";
-import confetti from 'canvas-confetti';
+import { motion, AnimatePresence } from 'framer-motion';
+
 
 interface Piece {
   pos: p5.Vector;
@@ -18,19 +18,52 @@ interface Piece {
 const Puzzle = () => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [showModal, setShowModal] = useState(false);
-  const [elapsedTime, setElapsedTime] = useState(0); // Timer state
-  const [isCompleted, setIsCompleted] = useState(false); // Completion state
-  const [startTime, setStartTime] = useState<number | null>(null); // Start time state
+  const [confettiTriggered, setConfettiTriggered] = useState(false);
+  const [showCountdown, setShowCountdown] = useState(false);
+  const [countdown, setCountdown] = useState("");
+  const launchDate = new Date("2024-09-10T15:00:00"); // Set your launch date here
 
-  // Start the timer when the puzzle starts
+  // Countdown Timer Logic
+  
+  // Countdown Timer Logic
   useEffect(() => {
-    if (!isCompleted && startTime) {
-      const interval = setInterval(() => {
-        setElapsedTime(Math.floor((new Date().getTime() - startTime) / 1000)); // Update every second
-      }, 1000);
-      return () => clearInterval(interval);
-    }
-  }, [isCompleted, startTime]);
+    const updateCountdown = () => {
+      const now = new Date().getTime(); // Get current time
+      const timeLeft = launchDate.getTime() - now; // Time difference in milliseconds
+  
+      // If the countdown is finished
+      if (timeLeft <= 0) {
+        setCountdown("Logo is revealed!");
+        return;
+      }
+  
+      // Calculate hours, minutes, and seconds remaining
+      const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+      const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+  
+      // Format as two digits
+      const formattedHours = String(hours).padStart(2, '0');
+      const formattedMinutes = String(minutes).padStart(2, '0');
+      const formattedSeconds = String(seconds).padStart(2, '0');
+  
+      // Update the countdown state
+      setCountdown(`${formattedHours} : ${formattedMinutes} : ${formattedSeconds}`);
+    };
+  
+    // Start the countdown interval
+    const interval = setInterval(updateCountdown, 1000);
+  
+    // Call once immediately to set initial value
+    updateCountdown();
+  
+    // Cleanup the interval on component unmount
+    return () => clearInterval(interval);
+  }, []);
+  
+  
+  
+
 
   useEffect(() => {
     const sketch = (p: p5) => {
@@ -45,6 +78,7 @@ const Puzzle = () => {
           "/images/2023_3.svg",
           "/images/2023_4.svg",
         ],
+        // Add the rest of your image sets here...
       };
 
       p.preload = () => {
@@ -68,7 +102,6 @@ const Puzzle = () => {
         const boxY = (canvasHeight - boxSize) / 2;
 
         puzzle = new PuzzleGame(boxX, boxY, boxSize, boxSize, images, 2); // 2x2 puzzle
-        setStartTime(new Date().getTime()); // Set the start time
       };
 
       p.draw = () => {
@@ -179,22 +212,25 @@ const Puzzle = () => {
               img,
               i,
               correctPos,
-              scaledWidth: scaledWidth * 1,
-              scaledHeight: scaledHeight * 1,
+              // Increase the size factor from 0.75 to 1 (or higher, like 1.1 or 1.2)
+              scaledWidth: scaledWidth * 1,  // Adjust this value to increase the size
+              scaledHeight: scaledHeight * 1,  // Adjust this value to increase the size
             };
         
             this.pieces.push(piece);
         
+            // Adjust the final scaling in the GSAP animation
             gsap.to(piece, {
-              scaledWidth: scaledWidth,
-              scaledHeight: scaledHeight,
+              scaledWidth: scaledWidth,  // Final width
+              scaledHeight: scaledHeight,  // Final height
               duration: 1.2,
               ease: "bounce.out",
               delay: i * 0.1,
             });
           }
         }
-
+        
+        
         private randomPos(pieceWidth: number, pieceHeight: number, isAbove: boolean) {
           const marginX = Math.min(
             50,
@@ -222,6 +258,7 @@ const Puzzle = () => {
         public draw() {
           p.noFill();
           p.stroke(255);
+          
 
           this.pieces.forEach((r) =>
             p.image(r.img, r.pos.x - r.scaledWidth / 2, r.pos.y - r.scaledHeight / 2, r.scaledWidth, r.scaledHeight)
@@ -255,104 +292,173 @@ const Puzzle = () => {
           );
         }
 
-        private putOnTop(index: number) {
-          if (this.dragPiece) {
-            this.pieces.splice(index, 1);
-            this.pieces.push(this.dragPiece);
-          }
-        }
-
         public mouseDragged(x: number, y: number) {
-          if (this.isDragging && this.dragPiece) {
-            this.dragPiece.pos = p.createVector(x, y).add(this.clickOffset);
+          if (this.isDragging) {
+            let dragpos = p.createVector(x, y);
+            this.dragPiece!.pos = p5.Vector.add(dragpos, this.clickOffset);
           }
         }
 
         public mouseReleased() {
-          if (this.isDragging && this.dragPiece) {
+          if (this.dragPiece && this.isDragging) {
+            const distToCorrectPos = this.dragPiece!.pos.dist(this.dragPiece!.correctPos);
+            if (distToCorrectPos < 51) {
+              this.dragPiece!.pos = this.dragPiece!.correctPos.copy();
+            }
             this.isDragging = false;
-            const validDrop = p.dist(this.dragPiece.pos.x, this.dragPiece.pos.y, this.dragPiece.correctPos.x, this.dragPiece.correctPos.y) < 60;
-
-            if (validDrop) {
-              gsap.to(this.dragPiece.pos, {
-                x: this.dragPiece.correctPos.x,
-                y: this.dragPiece.correctPos.y,
-                duration: 0.4,
-                ease: "bounce.out",
-              });
-
-              const isDone = this.pieces.every((piece) =>
-                p.dist(piece.pos.x, piece.pos.y, piece.correctPos.x, piece.correctPos.y) < 5
-              );
-
-              if (isDone) {
-                this.canPlay = false;
-                // Trigger confetti and show modal
-                setTimeout(() => {
-                  confetti({ particleCount: 200, spread: 70, origin: { y: 0.6 } });
+            this.dragPiece = null;
+        
+            if (this.isComplete()) {
+              this.canPlay = false;
+        
+              // GSAP animation to make the pieces fall off the screen and spread horizontally
+              const tl = gsap.timeline({
+                onComplete: () => {
+                  // Show the modal only after the pieces have fully fallen
                   setShowModal(true);
-                  setIsCompleted(true);
-                }, 800);
-              }
+                }
+              });
+        
+              this.pieces.forEach((piece, i) => {
+                // Set the target position to fall off the screen
+                const targetY = p.windowHeight + piece.scaledHeight * 2;
+        
+                // Add a random horizontal offset to spread the pieces further apart
+                const randomOffsetX = (Math.random() - 0.5) * 1000; // Adjust this value to control how far apart the pieces fall
+                const targetX = piece.pos.x + randomOffsetX;
+        
+                // Add animation to the timeline with staggered delay
+                tl.to(piece.pos, {
+                  x: targetX, // Move randomly left or right
+                  y: targetY, // Move down off the screen
+                  rotation: Math.random() * 360, // Optionally, add rotation for a dynamic effect
+                  duration: 2,
+                  ease: "power3.inOut", // Smooth falling effect
+                }, i * 0.1); // Delay each piece slightly for a staggered effect
+              });
             }
           }
         }
+        
+        
 
-        public updatePosition(x: number, y: number, boxWidth: number, boxHeight: number) {
+        private putOnTop(index: number) {
+          const removed = this.pieces.splice(index, 1)[0];
+          this.pieces.push(removed);
+        }
+
+        public updatePosition(
+          x: number,
+          y: number,
+          boxWidth: number,
+          boxHeight: number
+        ) {
           this.x = x;
           this.y = y;
           this.boxWidth = boxWidth;
           this.boxHeight = boxHeight;
+          this.placePieces(this.imgs);
+        }
+
+        private isComplete() {
+          return this.pieces.every((p) => p.pos.equals(p.correctPos));
         }
       }
     };
 
-    const myp5 = new p5(sketch);
+    const p5Instance = new p5(sketch);
 
     return () => {
-      myp5.remove();
+      p5Instance.remove();
     };
-  }, []);
+  }, [confettiTriggered]);
 
-  // Timer Display Function
-  const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
+  const modalVariants = {
+    hidden: {
+      opacity: 0,
+      scale: 0.8,
+    },
+    visible: {
+      opacity: 1,
+      scale: 1,
+    },
+    exit: {
+      opacity: 0,
+      scale: 0.8,
+    },
   };
-
+  
+  const letterVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0 },
+  };
+  
+  const countdownVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0 },
+  };
+  
+  const splitTextIntoLetters = (text: string) => {
+    return text.split('').map((char, index) => (
+      <motion.span
+        key={index}
+        variants={letterVariants}
+        initial="hidden"
+        animate="visible"
+        exit="hidden"
+        transition={{ duration: 0.05, delay: index * 0.05 }}
+      >
+        {char}
+      </motion.span>
+    ));
+  };
+  
+  useEffect(() => {
+    if (showModal) {
+      const timer = setTimeout(() => {
+        setShowCountdown(true);
+      }, 2000); // Adjust this delay to match the duration of your text animation
+  
+      return () => clearTimeout(timer);
+    }
+  }, [showModal]);
+  
   return (
-    <div className="relative w-screen h-screen">
-      {/* Puzzle Timer */}
-      {!isCompleted && (
-        <div className="absolute top-10 left-10 bg-white p-2 rounded shadow-lg">
-          <p className="text-xl font-bold">Time: {formatTime(elapsedTime)}</p>
-        </div>
-      )}
-
-      <div ref={canvasRef} className="w-full h-full" />
-
-      {/* Puzzle Completion Modal */}
+    <div ref={canvasRef} className="relative w-full h-screen">
       <AnimatePresence>
         {showModal && (
           <motion.div
-            className="fixed top-0 left-0 w-full h-full flex justify-center items-center bg-black bg-opacity-50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-opacity-60 flex items-center justify-center"
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            variants={modalVariants}
+            transition={{ duration: 0.5, ease: 'easeInOut' }}
           >
-            <div className="bg-white p-10 rounded shadow-xl">
-              <h2 className="text-3xl font-bold mb-4">Puzzle Complete!</h2>
-              <p className="text-xl">
-                Congratulations! You completed the puzzle in{" "}
-                <span className="font-bold">{formatTime(elapsedTime)}</span>.
-              </p>
+            <div className="bg-white bg-opacity-30 backdrop-blur-md rounded-lg p-4 md:p-8 text-center max-w-md mx-4 sm:mx-8 shadow-lg border border-white border-opacity-30">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4">
+                {splitTextIntoLetters("Puzzle completed! You've uncovered the past—now brace yourself, the new logo will be revealed in:")}
+              </h1>
+              {showCountdown && (
+                <motion.p
+                  className="text-lg sm:text-xl md:text-2xl font-semibold mb-4"
+                  initial="hidden"
+                  animate="visible"
+                  exit="hidden"
+                  variants={countdownVariants}
+                  transition={{ duration: 0.5, ease: 'easeInOut' }}
+                >
+                  {splitTextIntoLetters(countdown)}
+                </motion.p>
+              )}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
     </div>
   );
+
+  
 };
 
 export default Puzzle;

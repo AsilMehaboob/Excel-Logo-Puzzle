@@ -19,50 +19,19 @@ const Puzzle = () => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [showModal, setShowModal] = useState(false);
   const [confettiTriggered, setConfettiTriggered] = useState(false);
-  const [showCountdown, setShowCountdown] = useState(false);
-  const [countdown, setCountdown] = useState("");
-  const launchDate = new Date("2024-09-10T15:00:00"); // Set your launch date here
+  const [elapsedTime, setElapsedTime] = useState(0); // Timer state
+  const [isCompleted, setIsCompleted] = useState(false); // Completion state
+  const [startTime, setStartTime] = useState<number | null>(null); // Start time state
 
-  // Countdown Timer Logic
-  // Countdown Timer Logic
+
   useEffect(() => {
-    const updateCountdown = () => {
-      const now = new Date().getTime(); // Get current time
-      const timeLeft = launchDate.getTime() - now; // Time difference in milliseconds
-  
-      // If the countdown is finished
-      if (timeLeft <= 0) {
-        setCountdown("Logo is revealed!");
-        return;
-      }
-  
-      // Calculate hours, minutes, and seconds remaining
-      const hours = Math.floor(timeLeft / (1000 * 60 * 60));
-      const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-  
-      // Format as two digits
-      const formattedHours = String(hours).padStart(2, '0');
-      const formattedMinutes = String(minutes).padStart(2, '0');
-      const formattedSeconds = String(seconds).padStart(2, '0');
-  
-      // Update the countdown state
-      setCountdown(`${formattedHours} : ${formattedMinutes} : ${formattedSeconds}`);
-    };
-  
-    // Start the countdown interval
-    const interval = setInterval(updateCountdown, 1000);
-  
-    // Call once immediately to set initial value
-    updateCountdown();
-  
-    // Cleanup the interval on component unmount
-    return () => clearInterval(interval);
-  }, []);
-  
-  
-  
-
+    if (!isCompleted && startTime) {
+      const interval = setInterval(() => {
+        setElapsedTime(Math.floor((new Date().getTime() - startTime) / 1000)); // Update every second
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [isCompleted, startTime]);
 
   useEffect(() => {
     const sketch = (p: p5) => {
@@ -77,8 +46,50 @@ const Puzzle = () => {
           "/images/2023_3.svg",
           "/images/2023_4.svg",
         ],
-        // Add the rest of your image sets here...
+        2022: [
+          "/images/2022_1.svg",
+          "/images/2022_2.svg",
+          "/images/2022_3.svg",
+          "/images/2022_4.svg",
+        ],
+        2021: [
+          "/images/2021_1.svg",
+          "/images/2021_2.svg",
+          "/images/2021_3.svg",
+          "/images/2021_4.svg",
+        ],
+        2020: [
+          "/images/2020_1.svg",
+          "/images/2020_2.svg",
+          "/images/2020_3.svg",
+          "/images/2020_4.svg",
+        ],
+        2019: [
+          "/images/2019_1.svg",
+          "/images/2019_2.svg",
+          "/images/2019_3.svg",
+          "/images/2019_4.svg",
+        ],
+        2018: [
+          "/images/2018_1.svg",
+          "/images/2018_2.svg",
+          "/images/2018_3.svg",
+          "/images/2018_4.svg",
+        ],
+        2017: [
+          "/images/2017_1.svg",
+          "/images/2017_2.svg",
+          "/images/2017_3.svg",
+          "/images/2017_4.svg",
+        ],
+        2016: [
+          "/images/2016_1.svg",
+          "/images/2016_2.svg",
+          "/images/2016_3.svg",
+          "/images/2016_4.svg",
+        ],
       };
+      
 
       p.preload = () => {
         const yearKeys = Object.keys(imageSets);
@@ -323,8 +334,9 @@ const Puzzle = () => {
                 const targetY = p.windowHeight + piece.scaledHeight * 2;
         
                 // Add a random horizontal offset to spread the pieces further apart
-                const randomOffsetX = (Math.random() - 0.5) * 600; // Adjust this value to control how far apart the pieces fall
+                const randomOffsetX = (Math.random() - 0.5) * 1000; // Adjust this value to control how far apart the pieces fall
                 const targetX = piece.pos.x + randomOffsetX;
+                
         
                 // Add animation to the timeline with staggered delay
                 tl.to(piece.pos, {
@@ -412,17 +424,15 @@ const Puzzle = () => {
     ));
   };
   
-  useEffect(() => {
-    if (showModal) {
-      const timer = setTimeout(() => {
-        setShowCountdown(true);
-      }, 2000); // Adjust this delay to match the duration of your text animation
-  
-      return () => clearTimeout(timer);
-    }
-  }, [showModal]);
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
+  };
   
   return (
+
+    
     <div ref={canvasRef} className="relative w-full h-screen">
       <AnimatePresence>
         {showModal && (
@@ -436,20 +446,9 @@ const Puzzle = () => {
           >
             <div className="bg-white bg-opacity-30 backdrop-blur-md rounded-lg p-4 md:p-8 text-center max-w-md mx-4 sm:mx-8 shadow-lg border border-white border-opacity-30">
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4">
-                {splitTextIntoLetters("Puzzle completed! You've uncovered the past—now brace yourself, the new logo will be revealed in:")}
+                {splitTextIntoLetters("Puzzle completed! You've uncovered the past—now brace yourself, the new logo will be revealed soon")}
               </h1>
-              {showCountdown && (
-                <motion.p
-                  className="text-lg sm:text-xl md:text-2xl font-semibold mb-4"
-                  initial="hidden"
-                  animate="visible"
-                  exit="hidden"
-                  variants={countdownVariants}
-                  transition={{ duration: 0.5, ease: 'easeInOut' }}
-                >
-                  {splitTextIntoLetters(countdown)}
-                </motion.p>
-              )}
+              
             </div>
           </motion.div>
         )}
