@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import p5 from "p5";
 import gsap from "gsap";
 import { motion, AnimatePresence } from 'framer-motion';
+import Timer from "./Timer"; // Import the Timer component
+
 
 
 interface Piece {
@@ -191,7 +193,7 @@ const Puzzle = () => {
 
         private placePieces(imgs: p5.Image[]) {
           this.pieces = [];
-          
+        
           const pieceWidth = this.boxWidth / this.side;
           const pieceHeight = this.boxHeight / this.side;
           const manualPositions = [
@@ -200,14 +202,14 @@ const Puzzle = () => {
             p.createVector(this.x + pieceWidth * 0.800, this.y + pieceHeight * 1.403),
             p.createVector(this.x + pieceWidth * 1.360, this.y + pieceHeight * 1.403),
           ];
-          
+        
           for (let i = 0; i < this.side * this.side; i++) {
             const img = imgs[i];
             const correctPos = manualPositions[i];
-            
+        
             const aspectRatio = img.width / img.height;
             let scaledWidth, scaledHeight;
-            
+        
             if (aspectRatio > 1) {
               scaledWidth = pieceWidth;
               scaledHeight = pieceWidth / aspectRatio;
@@ -215,11 +217,11 @@ const Puzzle = () => {
               scaledHeight = pieceHeight;
               scaledWidth = pieceHeight * aspectRatio;
             }
-            
+        
             const isAbove = i < Math.floor(this.side * this.side / 2);
             const pos = this.randomPos(scaledWidth, scaledHeight, isAbove);
-            
-            // Initialize pieces with scale 0 and opacity 0 for the spawn effect
+        
+            // Initialize pieces with a position above the target area for falling effect
             const piece = {
               pos,
               img,
@@ -227,37 +229,33 @@ const Puzzle = () => {
               correctPos,
               scaledWidth: scaledWidth * 1,  // Adjust this value to increase the size
               scaledHeight: scaledHeight * 1,  // Adjust this value to increase the size
-              scale: 0,  // Initial scale
-              opacity: 0, // Initial opacity
+              scale: 1,  // No need to scale for falling effect
+              opacity: 0,  // Initial opacity
             };
-            
+        
             this.pieces.push(piece);
-            
-            // GSAP animation for spawn effect
+        
+            // GSAP animation for falling effect
             gsap.fromTo(piece,
               {
-                scale: 0,
-                opacity: 0,
-                x: piece.pos.x - piece.scaledWidth / 2,
-                y: piece.pos.y - piece.scaledHeight / 2,
+                opacity: 0,  // Initial opacity
+                y: piece.pos.y - piece.scaledHeight / 2 - 300,  // Start 300px above the final position
               },
               {
-                scale: 1,  // Final scale
-                opacity: 1,  // Final opacity
-                x: piece.pos.x - piece.scaledWidth / 2,
-                y: piece.pos.y - piece.scaledHeight / 2,
+                opacity: 1,  // Fade in while falling
+                y: piece.pos.y - piece.scaledHeight / 2,  // Final position
                 duration: 1.2,
-                ease: "bounce.out",
+                ease: "power2.out",  // Smooth falling motion
                 delay: i * 0.1,
                 onUpdate: () => {
-                  // Update the position of the piece with type conversion
-                  piece.pos.x = Number(gsap.getProperty(piece, "x"));
+                  // Update the position of the piece during animation
                   piece.pos.y = Number(gsap.getProperty(piece, "y"));
                 }
               }
             );
           }
         }
+        
         
         
         
