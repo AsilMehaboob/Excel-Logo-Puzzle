@@ -1,18 +1,19 @@
-@tailwind base;
+@tailwind base; 
 @tailwind components;
 @tailwind utilities;
 
-/* globals.css */
 
 @font-face {
-  font-family: 'SatoshiBold';
-  src: url('/Satoshi-Bold.ttf') format('truetype');
-  font-weight: bold;
+  font-family: "Satoshi";
+  src: url("/fonts/Satoshi-Regular.woff2") format("woff2");
+  font-weight: normal;
   font-style: normal;
 }
 
+
+
 html, body {
-  font-family: 'SatoshiBold', sans-serif;
+  font-family: 'Satoshi', sans-serif;
 }
 
 .text-transparent {
@@ -91,4 +92,27 @@ html, body {
 /* Class to remove grayscale */
 .bg-responsive.colorful::before {
   filter: grayscale(0%); /* Transition to full color */
+}
+
+
+.glassmorphism-background {
+  background: rgb(0, 0, 0); /* Transparent background */
+  backdrop-filter: blur(10px); /* Frosted glass effect */
+  -webkit-backdrop-filter: blur(10px); /* Safari support */
+  border-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.3); /* Subtle border */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Optional shadow */
+}
+
+@font-face {
+  font-family: "ClashDisplay";
+  src: url("/fonts/ClashDisplay-Variable.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+}
+
+
+
+.font-clash-display {
+  font-family: 'ClashDisplay', sans-serif;
 }

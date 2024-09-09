@@ -1,29 +1,32 @@
 "use client";
 import { useState, useEffect } from 'react';
-import Head from 'next/head';
-import Preloader from '../app/components/Preloader'; // Adjust path to match your folder structure
-import './globals.css'; // Your global styles
+import Preloader from '../app/components/Preloader'; // Adjust the path if necessary
+import './globals.css';
+import 'aos/dist/aos.css'; // AOS styles
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const preloaderDuration = 3000; // Ensure preloader fully completes
+    // Delay for preloader and ensure the component is only removed after animation
+    const preloaderDuration = 3000; // Give enough time for AOS to animate fully
+    const timer = setTimeout(() => setLoading(false), preloaderDuration);
 
-    setTimeout(() => setLoading(false), preloaderDuration); // Simulate loading duration
+    // Cleanup timer on unmount
+    return () => clearTimeout(timer);
   }, []);
 
   return (
     <html lang="en">
-      <Head>
+      <head>
         <title>My Puzzle Game</title>
-      </Head>
+      </head>
       <body>
         {loading ? (
-          <Preloader /> // Show preloader while loading
+          <Preloader /> // Show preloader only during loading
         ) : (
           <>
-            {children} {/* Show the main content once loading is complete */}
+            {children} {/* Show main content after loading completes */}
           </>
         )}
       </body>

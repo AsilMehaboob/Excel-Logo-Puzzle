@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import p5 from "p5";
 import gsap from "gsap";
 import { motion, AnimatePresence } from 'framer-motion';
-import Timer from "./Timer"; // Import the Timer component
 
 
 

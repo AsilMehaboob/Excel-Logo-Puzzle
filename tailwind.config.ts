@@ -11,7 +11,8 @@ module.exports = {
   darkMode: "class",
   theme: {
     fontFamily: {
-      handjet: ['Handjet', 'sans-serif'], // Adding Handjet font
+      test: ['Clash Display', 'sans-serif'],
+      damn_font: ['ClashDisplay']
     },
     extend: {
       backgroundImage: {
