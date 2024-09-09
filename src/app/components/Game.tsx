@@ -13,6 +13,8 @@ interface Piece {
   correctPos: p5.Vector;
   scaledWidth: number;
   scaledHeight: number;
+  scale: number; // Add scale property
+  opacity: number; // Add opacity property
 }
 
 const Puzzle = () => {
@@ -198,14 +200,14 @@ const Puzzle = () => {
             p.createVector(this.x + pieceWidth * 0.800, this.y + pieceHeight * 1.403),
             p.createVector(this.x + pieceWidth * 1.360, this.y + pieceHeight * 1.403),
           ];
-        
+          
           for (let i = 0; i < this.side * this.side; i++) {
             const img = imgs[i];
             const correctPos = manualPositions[i];
-        
+            
             const aspectRatio = img.width / img.height;
             let scaledWidth, scaledHeight;
-        
+            
             if (aspectRatio > 1) {
               scaledWidth = pieceWidth;
               scaledHeight = pieceWidth / aspectRatio;
@@ -213,32 +215,50 @@ const Puzzle = () => {
               scaledHeight = pieceHeight;
               scaledWidth = pieceHeight * aspectRatio;
             }
-        
+            
             const isAbove = i < Math.floor(this.side * this.side / 2);
             const pos = this.randomPos(scaledWidth, scaledHeight, isAbove);
-        
+            
+            // Initialize pieces with scale 0 and opacity 0 for the spawn effect
             const piece = {
               pos,
               img,
               i,
               correctPos,
-              // Increase the size factor from 0.75 to 1 (or higher, like 1.1 or 1.2)
               scaledWidth: scaledWidth * 1,  // Adjust this value to increase the size
               scaledHeight: scaledHeight * 1,  // Adjust this value to increase the size
+              scale: 0,  // Initial scale
+              opacity: 0, // Initial opacity
             };
-        
+            
             this.pieces.push(piece);
-        
-            // Adjust the final scaling in the GSAP animation
-            gsap.to(piece, {
-              scaledWidth: scaledWidth,  // Final width
-              scaledHeight: scaledHeight,  // Final height
-              duration: 1.2,
-              ease: "bounce.out",
-              delay: i * 0.1,
-            });
+            
+            // GSAP animation for spawn effect
+            gsap.fromTo(piece,
+              {
+                scale: 0,
+                opacity: 0,
+                x: piece.pos.x - piece.scaledWidth / 2,
+                y: piece.pos.y - piece.scaledHeight / 2,
+              },
+              {
+                scale: 1,  // Final scale
+                opacity: 1,  // Final opacity
+                x: piece.pos.x - piece.scaledWidth / 2,
+                y: piece.pos.y - piece.scaledHeight / 2,
+                duration: 1.2,
+                ease: "bounce.out",
+                delay: i * 0.1,
+                onUpdate: () => {
+                  // Update the position of the piece with type conversion
+                  piece.pos.x = Number(gsap.getProperty(piece, "x"));
+                  piece.pos.y = Number(gsap.getProperty(piece, "y"));
+                }
+              }
+            );
           }
         }
+        
         
         
         private randomPos(pieceWidth: number, pieceHeight: number, isAbove: boolean) {
@@ -269,10 +289,15 @@ const Puzzle = () => {
           p.noFill();
           p.stroke(255);
           
-
-          this.pieces.forEach((r) =>
-            p.image(r.img, r.pos.x - r.scaledWidth / 2, r.pos.y - r.scaledHeight / 2, r.scaledWidth, r.scaledHeight)
-          );
+          this.pieces.forEach((r) => {
+            // Apply scale and opacity during rendering
+            p.push();
+            p.translate(r.pos.x, r.pos.y); // Move to the piece's position
+            p.scale(r.scale); // Apply the GSAP animated scale
+            p.tint(255, 255 * r.opacity); // Apply the GSAP animated opacity
+            p.image(r.img, -r.scaledWidth / 2, -r.scaledHeight / 2, r.scaledWidth, r.scaledHeight); // Draw centered
+            p.pop();
+          });
         }
 
         public mousePressed(x: number, y: number) {

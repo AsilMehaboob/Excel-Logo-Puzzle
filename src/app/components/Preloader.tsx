@@ -1,54 +1,136 @@
-import { useEffect, useRef } from 'react';
+// components/Preloader.tsx
+import { useEffect, useState } from 'react';
 import { gsap } from 'gsap';
 
 const Preloader = () => {
-  const puzzleRef = useRef<SVGSVGElement | null>(null);
-  const pieceRefs = useRef<SVGPathElement[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const puzzle = puzzleRef.current;
-    const pieces = pieceRefs.current;
-
-    const speed1 = 0.5;
-    const speed2 = 0.5;
-
-    gsap.defaults({ ease: "expo.out" });
-
-    const tl = gsap.timeline({
-      onComplete: function () {
-        this.invalidate();
-        this.restart();
-      }
+    const counter3 = document.querySelector('.counter-3');
+    const animateCounter = (counter: Element | null, duration: number, delay: number = 0) => {
+      if (!counter) return;
+      const numHeight = (counter.querySelector('.num') as HTMLElement)?.clientHeight || 0;
+      const totalDistance = ((counter.querySelectorAll('.num')?.length || 1) - 1) * numHeight;
+  
+      gsap.to(counter, {
+        y: -totalDistance,
+        duration: duration,
+        delay: delay,
+        ease: 'power2.inOut',
+      });
+    };
+    
+    // Animate each counter
+    animateCounter(counter3, 5);
+    animateCounter(document.querySelector('.counter-2'), 6);
+    animateCounter(document.querySelector('.counter-1'), 2, 4);
+    
+    gsap.to('.digit', {
+      top: '-150px',
+      stagger: {
+        amount: 0.25,
+      },
+      delay: 6,
+      duration: 1,
+      ease: 'power4.inOut',
     });
 
-    tl.staggerTo(pieces, speed1, {
-      scale: 0.7,
-      transformOrigin: "50% 50%",
-      ease: "bounce.out",
-    }, 0.07)
-      .to(puzzle, speed2, {
-        rotation: "+=45",
-        ease: "back.inOut",
-      })
-      .to(pieces, speed1, {
-        scale: 1,
-        ease: "expo.inOut",
-      })
-      .to(puzzle, speed2, {
-        rotation: "+=45",
-        ease: "back.inOut",
-      });
+    gsap.from('.loader-1', {
+      width: 0,
+      duration: 6,
+      ease: 'power2.inOut',
+    });
 
+    gsap.from('.loader-2', {
+      width: 0,
+      duration: 6,
+      delay: 1.9,
+      ease: 'power2.inOut',
+    });
+
+    gsap.to('.loader', {
+      background: 'none',
+      delay: 6,
+      duration: 0.1,
+    });
+
+    gsap.to('.loader-1', {
+      rotate: 90,
+      y: -50,
+      duration: 0.5,
+      delay: 6,
+    });
+
+    gsap.to('.loader-2', {
+      x: -75,
+      y: 75,
+      duration: 0.5,
+    });
+
+    gsap.to('.loader', {
+      scale: 40,
+      duration: 1,
+      delay: 7,
+      ease: 'power2.inOut',
+    });
+
+    gsap.to('.loader', {
+      rotate: 45,
+      y: 500,
+      x: 2000,
+      duration: 1,
+      delay: 7,
+      ease: 'power2.inOut',
+    });
+
+    gsap.to('.loading-screen', {
+      opacity: 0,
+      duration: 0.5,
+      delay: 7.5,
+      ease: 'power1.inOut',
+      onComplete: () => setLoading(false),
+    });
   }, []);
 
+  if (!loading) return null;
+
   return (
-    <div className="flex h-screen items-center justify-center bg-white">
-      <svg ref={puzzleRef} className="w-20 cursor-pointer" viewBox="224 -224 512 512">
-        <path ref={(el) => { if (el) pieceRefs.current[0] = el }} className="st0 piece fill-[#84DCC6]" d="M660,17c0-33-27-60-60-60c-33,0-60,27-60,60c0,5.1,0.6,10.2,1.8,15H525h-45v61.9 c4.9-1.2,9.9-1.9,15-1.9c33.1,0,60,26.9,60,60s-26.9,60-60,60c-5.1,0-10.1-0.6-15-1.9V288h211c24.9,0,45-20.1,45-45V32h-77.8 C659.4,27.2,660,22.1,660,17z" />
-        <path ref={(el) => { if (el) pieceRefs.current[1] = el }} className="st1 piece fill-[#FFA69E]" d="M495,212c33.1,0,60-26.9,60-60s-26.9-60-60-60c-5.1,0-10.1,0.6-15,1.9V32h-15h-46.9 c1.2,4.9,1.9,9.9,1.9,15c0,33.1-26.9,60-60,60s-60-26.9-60-60c0-5.1,0.6-10.1,1.9-15H224v211c0,24.9,20.1,45,45,45h196h15v-77.9 C484.9,211.4,489.9,212,495,212z" />
-        <path ref={(el) => { if (el) pieceRefs.current[2] = el }} className="st2 piece fill-[#FF686B]" d="M300,47c0,33.1,26.9,60,60,60s60-26.9,60-60c0-5.1-0.6-10.1-1.9-15H465h15v-61.8 c-4.8,1.2-9.9,1.8-15,1.8c-33,0-60-27-60-60c0-33,27-60,60-60c5.1,0,10.2,0.6,15,1.8V-224H269c-24.9,0-45,20.1-45,45V32h77.9 C300.6,36.9,300,41.9,300,47z" />
-        <path ref={(el) => { if (el) pieceRefs.current[3] = el }} className="st3 piece fill-[#A5FFD6]" d="M691-224H525h-45v77.8c-4.8-1.2-9.9-1.8-15-1.8c-33,0-60,27-60,60c0,33,27,60,60,60 c5.1,0,10.2-0.6,15-1.8V32h45h16.8c-1.2-4.8-1.8-9.9-1.8-15c0-33,27-60,60-60c33,0,60,27,60,60c0,5.1-0.6,10.2-1.8,15H736v-211 C736-203.9,715.9-224,691-224z" />
-      </svg>
+    <div className="loading-screen fixed top-0 left-0 w-full h-full bg-black text-white pointer-events-none z-50">
+      <div className="loader flex absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[300px] h-[50px] bg-gray-600">
+        <div className="loader-1 bg-white h-full w-2/3"></div>
+        <div className="loader-2 bg-white h-full w-1/3"></div>
+      </div>
+
+      <div className="counter fixed left-12 bottom-12 flex space-x-2 text-[100px] leading-[102px] font-light">
+        <div className="counter-1 relative top-[-12px]">
+          <div className="num">0</div>
+          <div className="num num1offset1">1</div>
+        </div>
+        <div className="counter-2 relative top-[-12px]">
+          <div className="num">0</div>
+          <div className="num num1offset2">1</div>
+          <div className="num">2</div>
+          <div className="num">3</div>
+          <div className="num">4</div>
+          <div className="num">5</div>
+          <div className="num">6</div>
+          <div className="num">7</div>
+          <div className="num">8</div>
+          <div className="num">9</div>
+        </div>
+        <div className="counter-3 relative top-[-12px]">
+          <div className="num">0</div>
+          <div className="num">1</div>
+          <div className="num">2</div>
+          <div className="num">3</div>
+          <div className="num">4</div>
+          <div className="num">5</div>
+          <div className="num">6</div>
+          <div className="num">7</div>
+          <div className="num">8</div>
+          <div className="num">9</div>
+        </div>
+      </div>
     </div>
   );
 };

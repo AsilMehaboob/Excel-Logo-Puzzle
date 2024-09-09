@@ -15,7 +15,6 @@ html, body {
   font-family: 'SatoshiBold', sans-serif;
 }
 
-
 .text-transparent {
   -webkit-text-fill-color: transparent;
 }
@@ -60,7 +59,7 @@ html, body {
   font-size: 4rem;
 }
 
-/* Responsive Background Images with Opacity */
+/* Responsive Background Images with Grayscale */
 .bg-responsive {
   position: relative;
   overflow: hidden;
@@ -73,16 +72,23 @@ html, body {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url('/images/background-desktop.webp');
+  background-image: url('/images/background-desktop.png');
   background-size: cover;
   background-position: center;
   opacity: 0.5; /* Adjust opacity as needed */
+  filter: grayscale(100%); /* Apply grayscale effect initially */
+  transition: filter 1s ease; /* Smooth transition from grayscale to color */
   z-index: -1; /* Ensure the background is behind the content */
 }
 
 /* Mobile Background Image */
 @media (max-width: 767px) {
   .bg-responsive::before {
-    background-image: url('/images/background-mobile.webp');
+    background-image: url('/images/background-mobile.png');
   }
+}
+
+/* Class to remove grayscale */
+.bg-responsive.colorful::before {
+  filter: grayscale(0%); /* Transition to full color */
 }
