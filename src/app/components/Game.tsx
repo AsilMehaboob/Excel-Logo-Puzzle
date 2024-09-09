@@ -260,28 +260,35 @@ const Puzzle = () => {
         
         
         private randomPos(pieceWidth: number, pieceHeight: number, isAbove: boolean) {
-          const marginX = Math.min(
-            50,
-            (p.windowWidth - this.boxWidth) / 2 - pieceWidth
-          );
-          const marginY = Math.min(
-            50,
-            (p.windowHeight - this.boxHeight) / 2 - pieceHeight
-          );
-
-          let posX = p.random(
-            Math.max(this.x - marginX, 0),
-            Math.min(
-              this.x + this.boxWidth + marginX,
-              p.windowWidth - pieceWidth
-            )
-          );
-          let posY = isAbove
-            ? p.random(Math.max(0, this.y - marginY - pieceHeight), Math.max(0, this.y - marginY))
-            : p.random(Math.min(p.windowHeight - pieceHeight, this.y + this.boxHeight + marginY), Math.min(p.windowHeight - pieceHeight, this.y + this.boxHeight + marginY + pieceHeight));
-
+          // Define margins to keep pieces away from the edges of the display
+          const edgeMargin = 50; // Minimum distance from the edge of the display
+          
+          // Calculate the allowable range for X and Y positions within the canvas bounds
+          const minX = Math.max(this.x + edgeMargin, 0);
+          const maxX = Math.min(this.x + this.boxWidth - pieceWidth - edgeMargin, p.windowWidth - pieceWidth);
+          
+          let posX = p.random(minX, maxX);
+        
+          let posY;
+          if (isAbove) {
+            // Spawn slightly above the final position but ensure it is within the display bounds
+            posY = p.random(
+              Math.max(this.y - pieceHeight - 20, edgeMargin), // Randomness near the top but within the display bounds
+              Math.max(this.y - pieceHeight - 50, edgeMargin)  // Limit how far above they can be but within the display bounds
+            );
+          } else {
+            // Spawn slightly below the final position but ensure it is within the display bounds
+            posY = p.random(
+              Math.min(this.y + this.boxHeight + 20, p.windowHeight - pieceHeight - edgeMargin), // Randomness near the bottom but within the display bounds
+              Math.min(this.y + this.boxHeight + 90, p.windowHeight - pieceHeight - edgeMargin)  // Limit how far below they can be but within the display bounds
+            );
+          }
+        
           return p.createVector(posX, posY);
         }
+        
+        
+        
 
         public draw() {
           p.noFill();
