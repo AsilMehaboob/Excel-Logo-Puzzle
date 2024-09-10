@@ -6,7 +6,6 @@ import gsap from "gsap";
 import { motion, AnimatePresence } from 'framer-motion';
 
 
-
 interface Piece {
   pos: p5.Vector;
   img: p5.Image;
@@ -449,7 +448,7 @@ const Puzzle = () => {
         initial="hidden"
         animate="visible"
         exit="hidden"
-        transition={{ duration: 0.05, delay: index * 0.05 }}
+        transition={{ duration: 0.03, delay: index * 0.03 }}
       >
         {char}
       </motion.span>
@@ -478,7 +477,7 @@ const Puzzle = () => {
           >
             <div className="bg-white bg-opacity-30 backdrop-blur-md rounded-lg p-4 md:p-8 text-center max-w-md mx-4 sm:mx-8 shadow-lg border border-white border-opacity-30">
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4">
-                {splitTextIntoLetters("Puzzle completed! You've uncovered the past—now brace yourself, the new logo will be revealed soon")}
+                {splitTextIntoLetters("Puzzle completed! You've uncovered the past—now brace yourself, the new logo will be revealed soon...")}
               </h1>
               
             </div>

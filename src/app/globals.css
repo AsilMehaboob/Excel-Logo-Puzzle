@@ -96,7 +96,7 @@ html, body {
 
 
 .glassmorphism-background {
-  background: rgb(0, 0, 0); /* Transparent background */
+  background: #110E1B; /* Transparent background */
   backdrop-filter: blur(10px); /* Frosted glass effect */
   -webkit-backdrop-filter: blur(10px); /* Safari support */
   border-radius: 15px;
@@ -116,3 +116,4 @@ html, body {
 .font-clash-display {
   font-family: 'ClashDisplay', sans-serif;
 }
+
