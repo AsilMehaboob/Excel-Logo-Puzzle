@@ -9,7 +9,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   useEffect(() => {
     // Delay for preloader and ensure the component is only removed after animation
-    const preloaderDuration = 5000; // Give enough time for AOS to animate fully
+    const preloaderDuration = 4500; // Give enough time for AOS to animate fully
     const timer = setTimeout(() => setLoading(false), preloaderDuration);
 
     // Cleanup timer on unmount
