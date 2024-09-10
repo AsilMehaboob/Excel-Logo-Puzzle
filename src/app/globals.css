@@ -76,9 +76,6 @@ html, body {
   background-image: url('/images/background-desktop.png');
   background-size: cover;
   background-position: center;
-  opacity: 0.5; /* Adjust opacity as needed */
-  filter: grayscale(100%); /* Apply grayscale effect initially */
-  transition: filter 1s ease; /* Smooth transition from grayscale to color */
   z-index: -1; /* Ensure the background is behind the content */
 }
 
@@ -89,17 +86,14 @@ html, body {
   }
 }
 
-/* Class to remove grayscale */
-.bg-responsive.colorful::before {
-  filter: grayscale(0%); /* Transition to full color */
-}
 
 
 .glassmorphism-background {
-  background: #110E1B; /* Transparent background */
-  backdrop-filter: blur(10px); /* Frosted glass effect */
-  -webkit-backdrop-filter: blur(10px); /* Safari support */
-  border-radius: 15px;
+  background: url('/loading-bg.svg'); /* Transparent background */
+  background-size: cover;
+  /* backdrop-filter: blur(10px); Frosted glass effect */
+  /* -webkit-backdrop-filter: blur(10px); Safari support */
+  /* border-radius: 15px; */
   border: 1px solid rgba(255, 255, 255, 0.3); /* Subtle border */
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Optional shadow */
 }

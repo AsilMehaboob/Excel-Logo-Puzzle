@@ -64,9 +64,9 @@ const Preloader = () => {
 
   return (
     <div
-      className={`${spaceMono.className} bg-cover bg-black text-white bg-center min-h-screen w-screen bg-desktop md:bg-mobile flex justify-center items-center h-screen`}
+      className={`${spaceMono.className} text-white bg-center min-h-screen w-screen bg-desktop md:bg-mobile flex justify-center items-center h-screen`}
     >
-      <div className="glassmorphism-background flex flex-col justify-center text-[30px] font-medium items-center gap-[0px] text-center p-10 rounded-lg w-full h-full">
+      <div className="glassmorphism-background flex flex-col justify-center max-md:text-[21px] text-[30px] font-medium items-center gap-[0px] text-center p-10  w-full h-full">
         <p data-aos="zoom-in" data-aos-delay="500"  data-aos-easing="ease-in-out">
           <span>{inspireText}</span>
         </p>
