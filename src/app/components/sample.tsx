@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import p5 from "p5";
 import gsap from "gsap";
-import { motion, AnimatePresence } from "framer-motion";
-import confetti from 'canvas-confetti';
+import { motion, AnimatePresence } from 'framer-motion';
+
 
 interface Piece {
   pos: p5.Vector;
@@ -13,16 +13,19 @@ interface Piece {
   correctPos: p5.Vector;
   scaledWidth: number;
   scaledHeight: number;
+  scale: number; // Add scale property
+  opacity: number; // Add opacity property
 }
 
 const Puzzle = () => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [showModal, setShowModal] = useState(false);
+  const [confettiTriggered, setConfettiTriggered] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0); // Timer state
   const [isCompleted, setIsCompleted] = useState(false); // Completion state
   const [startTime, setStartTime] = useState<number | null>(null); // Start time state
 
-  // Start the timer when the puzzle starts
+
   useEffect(() => {
     if (!isCompleted && startTime) {
       const interval = setInterval(() => {
@@ -37,6 +40,7 @@ const Puzzle = () => {
       let puzzle: PuzzleGame | undefined;
       let images: p5.Image[] = [];
       let selectedImages: string[] = [];
+      let customFont: p5.Font;
 
       const imageSets = {
         2023: [
@@ -45,15 +49,60 @@ const Puzzle = () => {
           "/images/2023_3.svg",
           "/images/2023_4.svg",
         ],
+        2022: [
+          "/images/2022_1.svg",
+          "/images/2022_2.svg",
+          "/images/2022_3.svg",
+          "/images/2022_4.svg",
+        ],
+        2021: [
+          "/images/2021_1.svg",
+          "/images/2021_2.svg",
+          "/images/2021_3.svg",
+          "/images/2021_4.svg",
+        ],
+        2020: [
+          "/images/2020_1.svg",
+          "/images/2020_2.svg",
+          "/images/2020_3.svg",
+          "/images/2020_4.svg",
+        ],
+        2019: [
+          "/images/2019_1.svg",
+          "/images/2019_2.svg",
+          "/images/2019_3.svg",
+          "/images/2019_4.svg",
+        ],
+        2018: [
+          "/images/2018_1.svg",
+          "/images/2018_2.svg",
+          "/images/2018_3.svg",
+          "/images/2018_4.svg",
+        ],
+        2017: [
+          "/images/2017_1.svg",
+          "/images/2017_2.svg",
+          "/images/2017_3.svg",
+          "/images/2017_4.svg",
+        ],
+        2016: [
+          "/images/2016_1.svg",
+          "/images/2016_2.svg",
+          "/images/2016_3.svg",
+          "/images/2016_4.svg",
+        ],
       };
+      
 
       p.preload = () => {
         const yearKeys = Object.keys(imageSets);
+        customFont = p.loadFont('/fonts/Satoshi-Regular.ttf');
         const randomYear = yearKeys[Math.floor(Math.random() * yearKeys.length)];
         selectedImages = imageSets[randomYear as unknown as keyof typeof imageSets];
         selectedImages.forEach((url) => {
           images.push(p.loadImage(url));
         });
+        
       };
 
       p.setup = () => {
@@ -68,7 +117,6 @@ const Puzzle = () => {
         const boxY = (canvasHeight - boxSize) / 2;
 
         puzzle = new PuzzleGame(boxX, boxY, boxSize, boxSize, images, 2); // 2x2 puzzle
-        setStartTime(new Date().getTime()); // Set the start time
       };
 
       p.draw = () => {
@@ -118,6 +166,8 @@ const Puzzle = () => {
         puzzle?.updatePosition(boxX, boxY, boxSize, boxSize);
       };
 
+
+      
       class PuzzleGame {
         private pieces: Piece[] = [];
         private dragPiece: Piece | null = null;
@@ -146,14 +196,14 @@ const Puzzle = () => {
 
         private placePieces(imgs: p5.Image[]) {
           this.pieces = [];
-          
+        
           const pieceWidth = this.boxWidth / this.side;
           const pieceHeight = this.boxHeight / this.side;
           const manualPositions = [
-            p.createVector(this.x + pieceWidth * 0.909, this.y + pieceHeight * 0.905),
-            p.createVector(this.x + pieceWidth * 1.368, this.y + pieceHeight * 0.9),
-            p.createVector(this.x + pieceWidth * 0.800, this.y + pieceHeight * 1.403),
-            p.createVector(this.x + pieceWidth * 1.360, this.y + pieceHeight * 1.403),
+            p.createVector(this.x + pieceWidth * 0.909, this.y + pieceHeight * 0.750),
+            p.createVector(this.x + pieceWidth * 1.368, this.y + pieceHeight * 0.75),
+            p.createVector(this.x + pieceWidth * 0.800, this.y + pieceHeight * 1.25),
+            p.createVector(this.x + pieceWidth * 1.360, this.y + pieceHeight * 1.25),
           ];
         
           for (let i = 0; i < this.side * this.side; i++) {
@@ -174,59 +224,173 @@ const Puzzle = () => {
             const isAbove = i < Math.floor(this.side * this.side / 2);
             const pos = this.randomPos(scaledWidth, scaledHeight, isAbove);
         
+            // Initialize pieces with a position above the target area for falling effect
             const piece = {
               pos,
               img,
               i,
               correctPos,
-              scaledWidth: scaledWidth * 1,
-              scaledHeight: scaledHeight * 1,
+              scaledWidth: scaledWidth * 1,  // Adjust this value to increase the size
+              scaledHeight: scaledHeight * 1,  // Adjust this value to increase the size
+              scale: 1,  // No need to scale for falling effect
+              opacity: 0,  // Initial opacity
             };
         
             this.pieces.push(piece);
         
-            gsap.to(piece, {
-              scaledWidth: scaledWidth,
-              scaledHeight: scaledHeight,
-              duration: 1.2,
-              ease: "bounce.out",
-              delay: i * 0.1,
-            });
+            // GSAP animation for falling effect
+            gsap.fromTo(piece,
+              {
+                opacity: 0,  // Initial opacity
+                y: piece.pos.y - piece.scaledHeight / 2 - 300,  // Start 300px above the final position
+              },
+              {
+                opacity: 1,  // Fade in while falling
+                y: piece.pos.y - piece.scaledHeight / 2,  // Final position
+                duration: 1.2,
+                ease: "power2.out",  // Smooth falling motion
+                delay: i * 0.1,
+                onUpdate: () => {
+                  // Update the position of the piece during animation
+                  piece.pos.y = Number(gsap.getProperty(piece, "y"));
+                }
+              }
+            );
           }
         }
-
+        
+        
+        
+        
         private randomPos(pieceWidth: number, pieceHeight: number, isAbove: boolean) {
+          // Define margins to keep pieces away from the edges of the display
           const marginX = Math.min(
             50,
             (p.windowWidth - this.boxWidth) / 2 - pieceWidth
           );
+        
           const marginY = Math.min(
             50,
             (p.windowHeight - this.boxHeight) / 2 - pieceHeight
           );
-
-          let posX = p.random(
+        
+          // Calculate random position within allowed margins
+          const posX = p.random(
             Math.max(this.x - marginX, 0),
-            Math.min(
-              this.x + this.boxWidth + marginX,
-              p.windowWidth - pieceWidth
-            )
+            Math.min(this.x + this.boxWidth + marginX, p.windowWidth - pieceWidth)
           );
-          let posY = isAbove
-            ? p.random(Math.max(0, this.y - marginY - pieceHeight), Math.max(0, this.y - marginY))
-            : p.random(Math.min(p.windowHeight - pieceHeight, this.y + this.boxHeight + marginY), Math.min(p.windowHeight - pieceHeight, this.y + this.boxHeight + marginY + pieceHeight));
-
+        
+          const posY = isAbove
+            ? p.random(
+                Math.max(150, this.y - marginY - pieceHeight),
+                Math.max(0, this.y - marginY)
+              )
+            : p.random(
+                Math.min(p.windowHeight - pieceHeight, this.y + this.boxHeight + marginY),
+                // Increase the range below the canvas
+                Math.min(p.windowHeight + pieceHeight * 2, this.y + this.boxHeight + marginY + pieceHeight * 2)
+              );
+        
           return p.createVector(posX, posY);
         }
+        
+        
 
-        public draw() {
+        public draw(
+          paddingHeaderX: number = 10, paddingHeaderY: number = 55, 
+          paddingFooterX: number = 10, paddingFooterY: number = 20, 
+          fontSizeHeader: number = 21, fontSizeFooter: number = 9
+        ) {
+          const responsiveTextSize = p.map(p.width, 400, 1200, fontSizeHeader, fontSizeHeader + 8);
+        
+          // Draw gradient box
           p.noFill();
           p.stroke(255);
-
-          this.pieces.forEach((r) =>
-            p.image(r.img, r.pos.x - r.scaledWidth / 2, r.pos.y - r.scaledHeight / 2, r.scaledWidth, r.scaledHeight)
+          p.rect(this.x, this.y, this.boxWidth, this.boxHeight);
+        
+          // Gradient function
+          const drawGradient = (
+            x: number,
+            y: number,
+            width: number,
+            height: number,
+            colorStart: p5.Color,
+            colorEnd: p5.Color
+          ) => {
+            for (let i = 0; i <= height; i++) {
+              const inter = p.map(i, 0, height, 0, 1); // Interpolation factor (from 0 to 1)
+              const col = p.lerpColor(colorStart, colorEnd, inter); // Linearly interpolate between colors
+              p.stroke(col); // Set stroke color to the interpolated color
+              p.line(x, y + i, x + width, y + i); // Draw a horizontal line
+            }
+          };
+        
+          p.noFill();
+          p.strokeWeight(1);
+          drawGradient(this.x, this.y, this.boxWidth, this.boxHeight, p.color('#C4C4C4'), p.color('#5E5E5E'));
+        
+          // Set responsive text properties and position for header
+          p.fill(255);
+          p.textFont(customFont); // Set the custom font for the rest of the text
+          p.textAlign(p.LEFT, p.TOP);
+          p.textSize(responsiveTextSize);
+        
+          const firstLine = "Can You Piece Together";
+          const secondLine = "the Legacy of Excel?";
+          const textHeaderX = this.x + paddingHeaderX;
+          const textHeaderY = this.y - responsiveTextSize - paddingHeaderY;
+        
+          p.text(firstLine, textHeaderX, textHeaderY);
+          p.text(secondLine, textHeaderX, textHeaderY + responsiveTextSize);
+        
+          p.textStyle(p.BOLD);
+          const underlineStart = p.textWidth("the Legacy of ");
+          const underlineLength = p.textWidth("Excel");
+        
+          p.stroke(255);
+          p.line(
+            textHeaderX + underlineStart,
+            textHeaderY + responsiveTextSize * 2 + 5,
+            textHeaderX + underlineStart + underlineLength,
+            textHeaderY + responsiveTextSize * 2 + 5
           );
+        
+          // Draw puzzle pieces
+          this.pieces.forEach((r) => {
+            p.push();
+            p.translate(r.pos.x, r.pos.y);
+            p.scale(r.scale);
+            p.tint(255, 255 * r.opacity);
+            p.image(r.img, -r.scaledWidth / 2, -r.scaledHeight / 2, r.scaledWidth, r.scaledHeight);
+            p.pop();
+          });
+        
+          // Set responsive footer text properties and position for footer
+          const madeWithText = "Made with ";
+          const heartIcon = "❤‍🔥"; // Heart emoji
+          const footerText = " Excel 2024";
+        
+          // Render "Made with" in custom font
+          p.textSize(fontSizeFooter);
+          p.textAlign(p.LEFT, p.BOTTOM);
+          p.textFont(customFont); // Set back to custom font
+          p.text(madeWithText, this.x + paddingFooterX, this.y + this.boxHeight + paddingFooterY);
+        
+          // Render the heart icon with default font
+          const textWidthMadeWith = p.textWidth(madeWithText); // Get width of "Made with" to position heart
+          p.textFont('sans-serif'); // Set to default font (or 'serif', depending on preference)
+          p.text(heartIcon, this.x + paddingFooterX + textWidthMadeWith, this.y + this.boxHeight + paddingFooterY);
+        
+          // Render "Excel 2024" in custom font
+          const textWidthHeart = p.textWidth(heartIcon); // Get width of the heart
+          p.textFont(customFont); // Set back to custom font
+          p.text(footerText, this.x + paddingFooterX + textWidthMadeWith + textWidthHeart, this.y + this.boxHeight + paddingFooterY);
         }
+        
+        
+        
+        
+        
 
         public mousePressed(x: number, y: number) {
           if (this.canPlay) {
@@ -255,104 +419,161 @@ const Puzzle = () => {
           );
         }
 
-        private putOnTop(index: number) {
-          if (this.dragPiece) {
-            this.pieces.splice(index, 1);
-            this.pieces.push(this.dragPiece);
-          }
-        }
-
         public mouseDragged(x: number, y: number) {
-          if (this.isDragging && this.dragPiece) {
-            this.dragPiece.pos = p.createVector(x, y).add(this.clickOffset);
+          if (this.isDragging) {
+            let dragpos = p.createVector(x, y);
+            this.dragPiece!.pos = p5.Vector.add(dragpos, this.clickOffset);
           }
         }
 
         public mouseReleased() {
-          if (this.isDragging && this.dragPiece) {
+          if (this.dragPiece && this.isDragging) {
+            const distToCorrectPos = this.dragPiece!.pos.dist(this.dragPiece!.correctPos);
+            if (distToCorrectPos < 51) {
+              this.dragPiece!.pos = this.dragPiece!.correctPos.copy();
+            }
             this.isDragging = false;
-            const validDrop = p.dist(this.dragPiece.pos.x, this.dragPiece.pos.y, this.dragPiece.correctPos.x, this.dragPiece.correctPos.y) < 60;
-
-            if (validDrop) {
-              gsap.to(this.dragPiece.pos, {
-                x: this.dragPiece.correctPos.x,
-                y: this.dragPiece.correctPos.y,
-                duration: 0.4,
-                ease: "bounce.out",
-              });
-
-              const isDone = this.pieces.every((piece) =>
-                p.dist(piece.pos.x, piece.pos.y, piece.correctPos.x, piece.correctPos.y) < 5
-              );
-
-              if (isDone) {
-                this.canPlay = false;
-                // Trigger confetti and show modal
-                setTimeout(() => {
-                  confetti({ particleCount: 200, spread: 70, origin: { y: 0.6 } });
+            this.dragPiece = null;
+        
+            if (this.isComplete()) {
+              this.canPlay = false;
+        
+              // GSAP animation to make the pieces fall off the screen and spread horizontally
+              const tl = gsap.timeline({
+                onComplete: () => {
+                  // Show the modal only after the pieces have fully fallen
                   setShowModal(true);
-                  setIsCompleted(true);
-                }, 800);
-              }
+                }
+              });
+        
+              this.pieces.forEach((piece, i) => {
+                // Set the target position to fall off the screen
+                const targetY = p.windowHeight + piece.scaledHeight * 2;
+        
+                // Add a random horizontal offset to spread the pieces further apart
+                const randomOffsetX = (Math.random() - 0.5) * 1000; // Adjust this value to control how far apart the pieces fall
+                const targetX = piece.pos.x + randomOffsetX;
+                
+        
+                // Add animation to the timeline with staggered delay
+                tl.to(piece.pos, {
+                  x: targetX, // Move randomly left or right
+                  y: targetY, // Move down off the screen
+                  rotation: Math.random() * 360, // Optionally, add rotation for a dynamic effect
+                  duration: 2,
+                  ease: "power3.inOut", // Smooth falling effect
+                }, i * 0.1); // Delay each piece slightly for a staggered effect
+              });
             }
           }
         }
+        
+        
 
-        public updatePosition(x: number, y: number, boxWidth: number, boxHeight: number) {
+        private putOnTop(index: number) {
+          const removed = this.pieces.splice(index, 1)[0];
+          this.pieces.push(removed);
+        }
+
+        public updatePosition(
+          x: number,
+          y: number,
+          boxWidth: number,
+          boxHeight: number
+        ) {
           this.x = x;
           this.y = y;
           this.boxWidth = boxWidth;
           this.boxHeight = boxHeight;
+          this.placePieces(this.imgs);
+        }
+
+        private isComplete() {
+          return this.pieces.every((p) => p.pos.equals(p.correctPos));
         }
       }
     };
 
-    const myp5 = new p5(sketch);
+    const p5Instance = new p5(sketch);
 
     return () => {
-      myp5.remove();
+      p5Instance.remove();
     };
-  }, []);
+  }, [confettiTriggered]);
 
-  // Timer Display Function
+  const modalVariants = {
+    hidden: {
+      opacity: 0,
+      scale: 0.8,
+    },
+    visible: {
+      opacity: 1,
+      scale: 1,
+    },
+    exit: {
+      opacity: 0,
+      scale: 0.8,
+    },
+  };
+  
+  const letterVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0 },
+  };
+  
+  const countdownVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0 },
+  };
+  
+  const splitTextIntoLetters = (text: string) => {
+    return text.split('').map((char, index) => (
+      <motion.span
+        key={index}
+        variants={letterVariants}
+        initial="hidden"
+        animate="visible"
+        exit="hidden"
+        transition={{ duration: 0.03, delay: index * 0.03 }}
+      >
+        {char}
+      </motion.span>
+    ));
+  };
+  
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
   };
-
+  
   return (
-    <div className="relative w-screen h-screen">
-      {/* Puzzle Timer */}
-      {!isCompleted && (
-        <div className="absolute top-10 left-10 bg-white p-2 rounded shadow-lg">
-          <p className="text-xl font-bold">Time: {formatTime(elapsedTime)}</p>
-        </div>
-      )}
 
-      <div ref={canvasRef} className="w-full h-full" />
-
-      {/* Puzzle Completion Modal */}
+    
+    <div ref={canvasRef} className="relative w-full h-screen">
       <AnimatePresence>
         {showModal && (
           <motion.div
-            className="fixed top-0 left-0 w-full h-full flex justify-center items-center bg-black bg-opacity-50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-opacity-60 flex items-center justify-center"
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            variants={modalVariants}
+            transition={{ duration: 0.5, ease: 'easeInOut' }}
           >
-            <div className="bg-white p-10 rounded shadow-xl">
-              <h2 className="text-3xl font-bold mb-4">Puzzle Complete!</h2>
-              <p className="text-xl">
-                Congratulations! You completed the puzzle in{" "}
-                <span className="font-bold">{formatTime(elapsedTime)}</span>.
-              </p>
+            <div className="bg-white bg-opacity-30 backdrop-blur-md rounded-lg p-4 md:p-8 text-center max-w-md mx-4 sm:mx-8 shadow-lg border border-white border-opacity-30">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4">
+                {splitTextIntoLetters("Puzzle completed! You've uncovered the past—now brace yourself, the new logo will be revealed soon...")}
+              </h1>
+              
             </div>
           </motion.div>
         )}
       </AnimatePresence>
     </div>
   );
+
+  
 };
 
 export default Puzzle;
