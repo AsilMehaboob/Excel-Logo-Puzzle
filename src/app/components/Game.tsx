@@ -40,6 +40,7 @@ const Puzzle = () => {
       let puzzle: PuzzleGame | undefined;
       let images: p5.Image[] = [];
       let selectedImages: string[] = [];
+      let customFont: p5.Font;
 
       const imageSets = {
         2023: [
@@ -95,11 +96,13 @@ const Puzzle = () => {
 
       p.preload = () => {
         const yearKeys = Object.keys(imageSets);
+        customFont = p.loadFont('/fonts/Satoshi-Regular.ttf');
         const randomYear = yearKeys[Math.floor(Math.random() * yearKeys.length)];
         selectedImages = imageSets[randomYear as unknown as keyof typeof imageSets];
         selectedImages.forEach((url) => {
           images.push(p.loadImage(url));
         });
+        
       };
 
       p.setup = () => {
@@ -163,6 +166,8 @@ const Puzzle = () => {
         puzzle?.updatePosition(boxX, boxY, boxSize, boxSize);
       };
 
+
+      
       class PuzzleGame {
         private pieces: Piece[] = [];
         private dragPiece: Piece | null = null;
@@ -195,10 +200,10 @@ const Puzzle = () => {
           const pieceWidth = this.boxWidth / this.side;
           const pieceHeight = this.boxHeight / this.side;
           const manualPositions = [
-            p.createVector(this.x + pieceWidth * 0.909, this.y + pieceHeight * 0.905),
-            p.createVector(this.x + pieceWidth * 1.368, this.y + pieceHeight * 0.9),
-            p.createVector(this.x + pieceWidth * 0.800, this.y + pieceHeight * 1.403),
-            p.createVector(this.x + pieceWidth * 1.360, this.y + pieceHeight * 1.403),
+            p.createVector(this.x + pieceWidth * 0.909, this.y + pieceHeight * 0.750),
+            p.createVector(this.x + pieceWidth * 1.368, this.y + pieceHeight * 0.75),
+            p.createVector(this.x + pieceWidth * 0.800, this.y + pieceHeight * 1.25),
+            p.createVector(this.x + pieceWidth * 1.360, this.y + pieceHeight * 1.25),
           ];
         
           for (let i = 0; i < this.side * this.side; i++) {
@@ -291,20 +296,101 @@ const Puzzle = () => {
         
         
 
-        public draw() {
+        public draw(
+          paddingHeaderX: number = 10, paddingHeaderY: number = 55, 
+          paddingFooterX: number = 10, paddingFooterY: number = 20, 
+          fontSizeHeader: number = 21, fontSizeFooter: number = 9
+        ) {
+          const responsiveTextSize = p.map(p.width, 400, 1200, fontSizeHeader, fontSizeHeader + 8);
+        
+          // Draw gradient box
           p.noFill();
           p.stroke(255);
-          
+          p.rect(this.x, this.y, this.boxWidth, this.boxHeight);
+        
+          // Gradient function
+          const drawGradient = (
+            x: number,
+            y: number,
+            width: number,
+            height: number,
+            colorStart: p5.Color,
+            colorEnd: p5.Color
+          ) => {
+            for (let i = 0; i <= height; i++) {
+              const inter = p.map(i, 0, height, 0, 1); // Interpolation factor (from 0 to 1)
+              const col = p.lerpColor(colorStart, colorEnd, inter); // Linearly interpolate between colors
+              p.stroke(col); // Set stroke color to the interpolated color
+              p.line(x, y + i, x + width, y + i); // Draw a horizontal line
+            }
+          };
+        
+          p.noFill();
+          p.strokeWeight(1);
+          drawGradient(this.x, this.y, this.boxWidth, this.boxHeight, p.color('#C4C4C4'), p.color('#5E5E5E'));
+        
+          // Set responsive text properties and position for header
+          p.fill(255);
+          p.textFont(customFont); // Set the custom font for the rest of the text
+          p.textAlign(p.LEFT, p.TOP);
+          p.textSize(responsiveTextSize);
+        
+          const firstLine = "Can You Piece Together";
+          const secondLine = "the Legacy of Excel?";
+          const textHeaderX = this.x + paddingHeaderX;
+          const textHeaderY = this.y - responsiveTextSize - paddingHeaderY;
+        
+          p.text(firstLine, textHeaderX, textHeaderY);
+          p.text(secondLine, textHeaderX, textHeaderY + responsiveTextSize);
+        
+          p.textStyle(p.BOLD);
+          const underlineStart = p.textWidth("the Legacy of ");
+          const underlineLength = p.textWidth("Excel");
+        
+          p.stroke(255);
+          p.line(
+            textHeaderX + underlineStart,
+            textHeaderY + responsiveTextSize * 2 + 5,
+            textHeaderX + underlineStart + underlineLength,
+            textHeaderY + responsiveTextSize * 2 + 5
+          );
+        
+          // Draw puzzle pieces
           this.pieces.forEach((r) => {
-            // Apply scale and opacity during rendering
             p.push();
-            p.translate(r.pos.x, r.pos.y); // Move to the piece's position
-            p.scale(r.scale); // Apply the GSAP animated scale
-            p.tint(255, 255 * r.opacity); // Apply the GSAP animated opacity
-            p.image(r.img, -r.scaledWidth / 2, -r.scaledHeight / 2, r.scaledWidth, r.scaledHeight); // Draw centered
+            p.translate(r.pos.x, r.pos.y);
+            p.scale(r.scale);
+            p.tint(255, 255 * r.opacity);
+            p.image(r.img, -r.scaledWidth / 2, -r.scaledHeight / 2, r.scaledWidth, r.scaledHeight);
             p.pop();
           });
+        
+          // Set responsive footer text properties and position for footer
+          const madeWithText = "Made with ";
+          const heartIcon = "❤‍🔥"; // Heart emoji
+          const footerText = " Excel 2024";
+        
+          // Render "Made with" in custom font
+          p.textSize(fontSizeFooter);
+          p.textAlign(p.LEFT, p.BOTTOM);
+          p.textFont(customFont); // Set back to custom font
+          p.text(madeWithText, this.x + paddingFooterX, this.y + this.boxHeight + paddingFooterY);
+        
+          // Render the heart icon with default font
+          const textWidthMadeWith = p.textWidth(madeWithText); // Get width of "Made with" to position heart
+          p.textFont('sans-serif'); // Set to default font (or 'serif', depending on preference)
+          p.text(heartIcon, this.x + paddingFooterX + textWidthMadeWith, this.y + this.boxHeight + paddingFooterY);
+        
+          // Render "Excel 2024" in custom font
+          const textWidthHeart = p.textWidth(heartIcon); // Get width of the heart
+          p.textFont(customFont); // Set back to custom font
+          p.text(footerText, this.x + paddingFooterX + textWidthMadeWith + textWidthHeart, this.y + this.boxHeight + paddingFooterY);
         }
+        
+        
+        
+        
+        
 
         public mousePressed(x: number, y: number) {
           if (this.canPlay) {

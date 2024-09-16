@@ -15,10 +15,7 @@ module.exports = {
       damn_font: ['ClashDisplay']
     },
     extend: {
-      backgroundImage: {
-        'desktop': "url('/images/background-desktop.png')",
-        'mobile': "url('/images/background-mobile.png')",
-      },
+      
     },
   },
   plugins: [

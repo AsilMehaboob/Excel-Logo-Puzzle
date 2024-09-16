@@ -1,19 +1,26 @@
 @tailwind base; 
-@tailwind components;
+@tailwind components; 
 @tailwind utilities;
 
-
+/* Font face declarations */
 @font-face {
   font-family: "Satoshi";
-  src: url("/fonts/Satoshi-Regular.woff2") format("woff2");
+  src: url("/fonts/Satoshi-Regular.ttf") format("woff2");
   font-weight: normal;
   font-style: normal;
 }
 
+@font-face {
+  font-family: "ClashDisplay";
+  src: url("/fonts/ClashDisplay-Variable.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+}
 
-
+/* General Styles */
 html, body {
   font-family: 'Satoshi', sans-serif;
+  background-color: #110E1B; /* Global background color */
 }
 
 .text-transparent {
@@ -45,7 +52,7 @@ html, body {
 }
 
 .bg-black {
-  background-color: black;
+  background-color: #110E1B; /* Change background to new color */
 }
 
 .z-50 {
@@ -64,6 +71,7 @@ html, body {
 .bg-responsive {
   position: relative;
   overflow: hidden;
+  background-color: #110E1B; /* Global background for .bg-responsive */
 }
 
 .bg-responsive::before {
@@ -73,7 +81,7 @@ html, body {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url('/images/background-desktop.png');
+  background-color: #110E1B; /* Background color for responsive images */
   background-size: cover;
   background-position: center;
   z-index: -1; /* Ensure the background is behind the content */
@@ -82,32 +90,19 @@ html, body {
 /* Mobile Background Image */
 @media (max-width: 767px) {
   .bg-responsive::before {
-    background-image: url('/images/background-mobile.png');
+    background-color: #110E1B;
   }
 }
 
-
-
+/* Glassmorphism background */
 .glassmorphism-background {
-  background: url('/loading-bg.svg'); /* Transparent background */
+  background-color: #110E1B; /* Transparent background color */
   background-size: cover;
-  /* backdrop-filter: blur(10px); Frosted glass effect */
-  /* -webkit-backdrop-filter: blur(10px); Safari support */
-  /* border-radius: 15px; */
   border: 1px solid rgba(255, 255, 255, 0.3); /* Subtle border */
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Optional shadow */
 }
 
-@font-face {
-  font-family: "ClashDisplay";
-  src: url("/fonts/ClashDisplay-Variable.woff2") format("woff2");
-  font-weight: normal;
-  font-style: normal;
-}
-
-
-
+/* Font Classes */
 .font-clash-display {
   font-family: 'ClashDisplay', sans-serif;
 }
-
