@@ -1,81 +1,54 @@
 import { useEffect, useState } from "react";
 import { Space_Mono } from "@next/font/google";
-import "aos/dist/aos.css";
-import AOS from "aos";
 
 // Import Space Mono
 const spaceMono = Space_Mono({
   subsets: ["latin"],
-  weight: ["400", "700"], // Specify the weights you need
+  weight: ["400", "700"],
 });
 
-const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-const useHackerEffect = (text: string, delay: number) => {
-  const [displayText, setDisplayText] = useState("");
-  const [isComplete, setIsComplete] = useState(false);
-
-  useEffect(() => {
-    AOS.init({ duration: 1000, once: true }); // Initialize AOS once with a 1s duration
-  }, []);
-
-  useEffect(() => {
-    let iteration = 0;
-    let interval: NodeJS.Timeout;
-
-    const startHackerEffect = () => {
-      interval = setInterval(() => {
-        setDisplayText((prev) =>
-          text
-            .split("")
-            .map((letter, index) => {
-              if (index < iteration) {
-                return text[index]; // Reveal the actual letter when iteration catches up
-              }
-              return letters[Math.floor(Math.random() * 26)]; // Random letter scrambling
-            })
-            .join("")
-        );
-
-        if (iteration >= text.length) {
-          clearInterval(interval);
-          setIsComplete(true);
-        }
-
-        iteration += 1 / 3; // Controls the speed of letter revealing
-      }, 50); // Controls the speed of letter scrambling
-    };
-
-    const typingDelay = setTimeout(startHackerEffect, delay); // Delay before starting the effect
-
-    return () => {
-      clearTimeout(typingDelay);
-      clearInterval(interval);
-    };
-  }, [text, delay]);
-
-  return { displayText, isComplete };
-};
-
 const Preloader = () => {
-  const { displayText: inspireText } = useHackerEffect("INSPIRE", 600);
-  const { displayText: innovateText } = useHackerEffect("INNOVATE", 1200);
-  const { displayText: engineerText } = useHackerEffect("ENGINEER", 2100);
+  const [number, setNumber] = useState(0);
+
+  useEffect(() => {
+    let startNumber = 0;
+    const endNumber = 100;
+    const speed = 34;
+
+    const increaseNumber = () => {
+      if (startNumber <= endNumber) {
+        if (startNumber === 58 || startNumber === 80 || startNumber === 32) {
+          setTimeout(() => {
+            if (startNumber <= endNumber) {
+              // to ensure no further increments after 100
+              setNumber(startNumber);
+              startNumber += 1;
+            }
+          }, 650); // Pause at 32%, 58%, and 80%
+        } else {
+          setNumber(startNumber);
+          startNumber += 1;
+        }
+      }
+    };
+
+    const interval = setInterval(() => {
+      if (startNumber <= endNumber) {
+        increaseNumber();
+      } else {
+        clearInterval(interval); // Stop when the count reaches 100
+      }
+    }, speed);
+
+    return () => clearInterval(interval); // Cleanup on unmount
+  }, []);
 
   return (
     <div
-      className={`${spaceMono.className} text-white bg-center min-h-screen w-screen bg-desktop md:bg-mobile flex justify-center items-center h-screen`}
+      className={`${spaceMono.className} text-white min-h-screen w-screen bg-desktop md:bg-mobile flex justify-center items-center h-screen ease-in-out`}
     >
-      <div className="glassmorphism-background flex flex-col justify-center max-md:text-[21px] text-[30px] font-medium items-center gap-[0px] text-center p-10  w-full h-full">
-        <p data-aos="zoom-in" data-aos-delay="500"  data-aos-easing="ease-in-out">
-          <span>{inspireText}</span>
-        </p>
-        <p data-aos="zoom-in" data-aos-delay="1100"  data-aos-easing="ease-in-out">
-          <span>{innovateText}</span>
-        </p>
-        <p data-aos="zoom-in" data-aos-delay="2000"  data-aos-easing="ease-in-out">
-          <span>{engineerText}</span>
-        </p>
+      <div className="flex flex-col overflow-hidden justify-center items-center bg-[#0D0A2C] w-screen h-screen text-white max-md:text-[36px] text-[50px] font-semibold">
+        <p>{number}%</p>
       </div>
     </div>
   );
