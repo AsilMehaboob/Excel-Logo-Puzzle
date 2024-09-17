@@ -5,7 +5,14 @@
 /* Font face declarations */
 @font-face {
   font-family: "Satoshi";
-  src: url("/fonts/Satoshi-Regular.ttf") format("woff2");
+  src: url("/fonts/Satoshi-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Satoshi";
+  src: url("/fonts/Satoshi-Italic.woff2") format("woff2");
   font-weight: normal;
   font-style: normal;
 }

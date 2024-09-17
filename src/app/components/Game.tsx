@@ -4,6 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import p5 from "p5";
 import gsap from "gsap";
 import { motion, AnimatePresence } from 'framer-motion';
+import Timer from './Timer'; // Adjust the path based on your file structure
+import confetti from 'canvas-confetti'; // Import confetti
+
 
 
 interface Piece {
@@ -21,19 +24,11 @@ const Puzzle = () => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [showModal, setShowModal] = useState(false);
   const [confettiTriggered, setConfettiTriggered] = useState(false);
-  const [elapsedTime, setElapsedTime] = useState(0); // Timer state
-  const [isCompleted, setIsCompleted] = useState(false); // Completion state
-  const [startTime, setStartTime] = useState<number | null>(null); // Start time state
+  const [isTimerRunning, setIsTimerRunning] = useState(true); // To control the timer
+  const [isPuzzleCompleted, setIsPuzzleCompleted] = useState(false);
+const [isConfettiLaunched, setIsConfettiLaunched] = useState(false);
 
 
-  useEffect(() => {
-    if (!isCompleted && startTime) {
-      const interval = setInterval(() => {
-        setElapsedTime(Math.floor((new Date().getTime() - startTime) / 1000)); // Update every second
-      }, 1000);
-      return () => clearInterval(interval);
-    }
-  }, [isCompleted, startTime]);
 
   useEffect(() => {
     const sketch = (p: p5) => {
@@ -121,8 +116,12 @@ const Puzzle = () => {
 
       p.draw = () => {
         p.clear();
-        puzzle?.draw();
+        // Only draw the puzzle if it hasn't been completed
+        if (!isPuzzleCompleted) {
+          puzzle?.draw();
+        }
       };
+      
 
       p.mousePressed = () => {
         puzzle?.mousePressed(p.mouseX, p.mouseY);
@@ -434,40 +433,46 @@ const Puzzle = () => {
             }
             this.isDragging = false;
             this.dragPiece = null;
-        
+
             if (this.isComplete()) {
               this.canPlay = false;
-        
-              // GSAP animation to make the pieces fall off the screen and spread horizontally
+              setIsPuzzleCompleted(true);
+              setIsTimerRunning(false);
+            
+              // Trigger confetti only once when the puzzle is completed
+              if (!isConfettiLaunched) {
+                setIsConfettiLaunched(true);
+                confetti({
+                  particleCount: 100,
+                  spread: 70,
+                  origin: { y: 0.6 },
+                });
+              }
+            
+              // GSAP animation for pieces falling off the screen
               const tl = gsap.timeline({
                 onComplete: () => {
-                  // Show the modal only after the pieces have fully fallen
                   setShowModal(true);
                 }
               });
-        
+
               this.pieces.forEach((piece, i) => {
-                // Set the target position to fall off the screen
                 const targetY = p.windowHeight + piece.scaledHeight * 2;
-        
-                // Add a random horizontal offset to spread the pieces further apart
-                const randomOffsetX = (Math.random() - 0.5) * 1000; // Adjust this value to control how far apart the pieces fall
+                const randomOffsetX = (Math.random() - 0.5) * 1000;
                 const targetX = piece.pos.x + randomOffsetX;
-                
-        
-                // Add animation to the timeline with staggered delay
+
                 tl.to(piece.pos, {
-                  x: targetX, // Move randomly left or right
-                  y: targetY, // Move down off the screen
-                  rotation: Math.random() * 360, // Optionally, add rotation for a dynamic effect
+                  x: targetX,
+                  y: targetY,
+                  rotation: Math.random() * 360,
                   duration: 2,
-                  ease: "power3.inOut", // Smooth falling effect
-                }, i * 0.1); // Delay each piece slightly for a staggered effect
+                  ease: "power3.inOut",
+                }, i * 0.1);
               });
             }
           }
         }
-        
+
         
 
         private putOnTop(index: number) {
@@ -521,11 +526,6 @@ const Puzzle = () => {
     visible: { opacity: 1, y: 0 },
   };
   
-  const countdownVariants = {
-    hidden: { opacity: 0, y: 10 },
-    visible: { opacity: 1, y: 0 },
-  };
-  
   const splitTextIntoLetters = (text: string) => {
     return text.split('').map((char, index) => (
       <motion.span
@@ -541,16 +541,13 @@ const Puzzle = () => {
     ));
   };
   
-  const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
-  };
+  
   
   return (
 
     
     <div ref={canvasRef} className="relative w-full h-screen">
+      <Timer isRunning={isTimerRunning} />
       <AnimatePresence>
         {showModal && (
           <motion.div
