@@ -7,8 +7,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Timer from './Timer'; // Adjust the path based on your file structure
 import confetti from 'canvas-confetti'; // Import confetti
 
-
-
 interface Piece {
   pos: p5.Vector;
   img: p5.Image;
@@ -26,8 +24,26 @@ const Puzzle = () => {
   const [confettiTriggered, setConfettiTriggered] = useState(false);
   const [isTimerRunning, setIsTimerRunning] = useState(true); // To control the timer
   const [isPuzzleCompleted, setIsPuzzleCompleted] = useState(false);
-const [isConfettiLaunched, setIsConfettiLaunched] = useState(false);
+  const [isConfettiLaunched, setIsConfettiLaunched] = useState(false);
+  const [timeElapsed, setTimeElapsed] = useState(0); // To store elapsed time
+  const [isRunning, setIsRunning] = useState(true); // Game running state
+  const [isGameComplete, setIsGameComplete] = useState(false); // Game completion state
+  const [elapsedTime, setElapsedTime] = useState(0); // Track time elapsed
 
+  const handleTimeUpdate = (time: number) => {
+    setElapsedTime(time); // Update elapsed time as timer runs
+  };
+
+  const handleGameComplete = () => {
+    setIsRunning(false); // Stop the timer
+    setIsGameComplete(true); // Show the modal
+  };
+
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
+  };
 
 
   useEffect(() => {
@@ -36,6 +52,7 @@ const [isConfettiLaunched, setIsConfettiLaunched] = useState(false);
       let images: p5.Image[] = [];
       let selectedImages: string[] = [];
       let customFont: p5.Font;
+
 
       const imageSets = {
         2023: [
@@ -88,6 +105,8 @@ const [isConfettiLaunched, setIsConfettiLaunched] = useState(false);
         ],
       };
       
+      
+
 
       p.preload = () => {
         const yearKeys = Object.keys(imageSets);
@@ -437,9 +456,14 @@ const [isConfettiLaunched, setIsConfettiLaunched] = useState(false);
             if (this.isComplete()) {
               this.canPlay = false;
               setIsPuzzleCompleted(true);
+            
+              // Stop the timer
               setIsTimerRunning(false);
             
-              // Trigger confetti only once when the puzzle is completed
+              // Capture the final time when the puzzle is completed
+              const finalTime = timeElapsed;  // Ensure this is correctly tracked in your Timer component
+              setTimeElapsed(finalTime);      // Store the final time, which will be passed to the modal
+            
               if (!isConfettiLaunched) {
                 setIsConfettiLaunched(true);
                 confetti({
@@ -452,15 +476,15 @@ const [isConfettiLaunched, setIsConfettiLaunched] = useState(false);
               // GSAP animation for pieces falling off the screen
               const tl = gsap.timeline({
                 onComplete: () => {
-                  setShowModal(true);
-                }
+                  setShowModal(true); // Show modal after animation
+                },
               });
-
+            
               this.pieces.forEach((piece, i) => {
                 const targetY = p.windowHeight + piece.scaledHeight * 2;
                 const randomOffsetX = (Math.random() - 0.5) * 1000;
                 const targetX = piece.pos.x + randomOffsetX;
-
+            
                 tl.to(piece.pos, {
                   x: targetX,
                   y: targetY,
@@ -470,7 +494,8 @@ const [isConfettiLaunched, setIsConfettiLaunched] = useState(false);
                 }, i * 0.1);
               });
             }
-          }
+            
+          }            
         }
 
         
@@ -547,7 +572,7 @@ const [isConfettiLaunched, setIsConfettiLaunched] = useState(false);
 
     
     <div ref={canvasRef} className="relative w-full h-screen">
-      <Timer isRunning={isTimerRunning} />
+      <Timer isRunning={isTimerRunning} onTimeUpdate={handleTimeUpdate} />
       <AnimatePresence>
         {showModal && (
           <motion.div
@@ -558,12 +583,17 @@ const [isConfettiLaunched, setIsConfettiLaunched] = useState(false);
             variants={modalVariants}
             transition={{ duration: 0.5, ease: 'easeInOut' }}
           >
-            <div className="bg-white bg-opacity-30 backdrop-blur-md rounded-lg p-4 md:p-8 text-center max-w-md mx-4 sm:mx-8 shadow-lg border border-white border-opacity-30">
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4">
-                {splitTextIntoLetters("Puzzle completed! You've uncovered the past—now brace yourself, the new logo will be revealed soon...")}
-              </h1>
-              
-            </div>
+           <div className="bg-[#110E1B] bg-opacity-90 backdrop-blur-md text-white w-screen h-screen flex flex-col justify-center items-center">
+  <div className="text-center">
+    <h1 className="text-2xl mr-14 font-satoshi text-left ml-8 top-10 mr sm:text-4xl md:text-5xl font-bold mb-4 leading-snug">
+    {splitTextIntoLetters("Puzzle completed! You've uncovered the past—now brace yourself, the new logo will be revealed soon...")}
+    </h1>
+    <p className="mt-4 text-right mr-5 text-2xl sm:text-xl font-semibold">
+      You solved it in <br/> <span className="text-[#FF5E79]">{formatTime(elapsedTime)}</span>. Great job!
+    </p>
+  </div>
+</div>
+
           </motion.div>
         )}
       </AnimatePresence>
@@ -572,5 +602,9 @@ const [isConfettiLaunched, setIsConfettiLaunched] = useState(false);
 
   
 };
+
+
+
+
 
 export default Puzzle;

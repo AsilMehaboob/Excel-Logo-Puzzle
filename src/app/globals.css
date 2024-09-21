@@ -14,7 +14,7 @@
   font-family: "Satoshi";
   src: url("/fonts/Satoshi-Italic.woff2") format("woff2");
   font-weight: normal;
-  font-style: normal;
+  font-style: italic;
 }
 
 @font-face {
@@ -101,13 +101,6 @@ html, body {
   }
 }
 
-/* Glassmorphism background */
-.glassmorphism-background {
-  background-color: #110E1B; /* Transparent background color */
-  background-size: cover;
-  border: 1px solid rgba(255, 255, 255, 0.3); /* Subtle border */
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Optional shadow */
-}
 
 /* Font Classes */
 .font-clash-display {

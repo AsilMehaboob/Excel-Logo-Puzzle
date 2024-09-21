@@ -11,8 +11,8 @@ module.exports = {
   darkMode: "class",
   theme: {
     fontFamily: {
-      test: ['Clash Display', 'sans-serif'],
-      damn_font: ['ClashDisplay']
+      satoshi: ['Satoshi', 'sans-serif'],
+      clashDisplay: ['ClashDisplay', 'sans-serif'],
     },
     extend: {
       
