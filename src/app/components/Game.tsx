@@ -585,10 +585,10 @@ const Puzzle = () => {
           >
            <div className="bg-[#110E1B] bg-opacity-90 backdrop-blur-md text-white w-screen h-screen flex flex-col justify-center items-center">
   <div className="text-center">
-    <h1 className="text-2xl mr-14 font-satoshi text-left ml-8 top-10 mr sm:text-4xl md:text-5xl font-bold mb-4 leading-snug">
+    <h1 className="text-3xl pb-8 mr-14 font-satoshi text-left ml-8 top-6 mr sm:text-4xl md:text-5xl font-bold mb-4 leading-snug">
     {splitTextIntoLetters("Puzzle completed! You've uncovered the past—now brace yourself, the new logo will be revealed soon...")}
     </h1>
-    <p className="mt-4 text-right mr-5 text-2xl sm:text-xl font-semibold">
+    <p className="mt-4 pt-12 text-right mr-5 text-3xl sm:text-xl font-semibold">
       You solved it in <br/> <span className="text-[#FF5E79]">{formatTime(elapsedTime)}</span>. Great job!
     </p>
   </div>
