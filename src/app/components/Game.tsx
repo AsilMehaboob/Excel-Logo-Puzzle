@@ -315,9 +315,9 @@ const Puzzle = () => {
         
 
         public draw(
-          paddingHeaderX: number = 10, paddingHeaderY: number = 55, 
-          paddingFooterX: number = 10, paddingFooterY: number = 20, 
-          fontSizeHeader: number = 21, fontSizeFooter: number = 9
+          paddingHeaderX: number = 0, paddingHeaderY: number = 55, 
+          paddingFooterX: number = 0, paddingFooterY: number = 22, 
+          fontSizeHeader: number = 21, fontSizeFooter: number = 11
         ) {
           const responsiveTextSize = p.map(p.width, 400, 1200, fontSizeHeader, fontSizeHeader + 8);
         
@@ -584,12 +584,12 @@ const Puzzle = () => {
             transition={{ duration: 0.5, ease: 'easeInOut' }}
           >
            <div className="bg-[#110E1B] bg-opacity-90 backdrop-blur-md text-white w-screen h-screen flex flex-col justify-center items-center">
-  <div className="text-center">
-    <h1 className="text-3xl pb-8 mr-14 font-satoshi text-left ml-8 top-6 mr sm:text-4xl md:text-5xl font-bold mb-4 leading-snug">
+  <div className="mt-4">
+    <h1 className="text-3xl mr-14 font-satoshi text-left ml-8 top-6 mr sm:text-4xl md:text-5xl font-bold mb-4 leading-snug">
     {splitTextIntoLetters("Puzzle completed! You've uncovered the past—now brace yourself, the new logo will be revealed soon...")}
     </h1>
-    <p className="mt-4 pt-12 text-right mr-5 text-3xl sm:text-xl font-semibold">
-      You solved it in <br/> <span className="text-[#FF5E79]">{formatTime(elapsedTime)}</span>. Great job!
+    <p className="mt-4 pt-7 text-right bottom-12 mr-5 text-3xl sm:text-xl font-semibold">
+      You solved it in <br/> <span className="text-[#FF5E79]">{formatTime(elapsedTime)}m</span>. Great job!
     </p>
   </div>
 </div>

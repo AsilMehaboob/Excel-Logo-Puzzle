@@ -33,8 +33,8 @@ const Timer = ({ isRunning, onTimeUpdate }: { isRunning: boolean; onTimeUpdate: 
   }, [isRunning, onTimeUpdate]);
 
   return (
-    <div className="absolute top-4 right-4 px-2 py-1 bg-transparent text-white border border-white border-opacity-50">
-      <div className="text-sm mt-1">Time Elapsed: {formatTime(timeElapsed)}</div>
+    <div className="absolute top-4 italic right-4 px-2 py-1 bg-transparent text-white border border-white border-opacity-50">
+      <div className="text-sm mt-1 text-opacity-30">Time Elapsed: {formatTime(timeElapsed)}</div>
     </div>
   );
 };
