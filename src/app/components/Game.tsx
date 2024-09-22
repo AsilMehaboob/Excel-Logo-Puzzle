@@ -29,6 +29,7 @@ const Puzzle = () => {
   const [isRunning, setIsRunning] = useState(true); // Game running state
   const [isGameComplete, setIsGameComplete] = useState(false); // Game completion state
   const [elapsedTime, setElapsedTime] = useState(0); // Track time elapsed
+  const [isLoading, setIsLoading] = useState(true); // Add loading state
 
   const handleTimeUpdate = (time: number) => {
     setElapsedTime(time); // Update elapsed time as timer runs
@@ -116,7 +117,16 @@ const Puzzle = () => {
         selectedImages.forEach((url) => {
           images.push(p.loadImage(url));
         });
-        
+
+
+        selectedImages.forEach((url, index) => {
+          images[index] = p.loadImage(url, () => {
+            if (images.length === selectedImages.length) {
+              setIsLoading(false); // All images are loaded
+              setIsTimerRunning(true); // Start the timer once everything is loaded
+            }
+          });
+        });
       };
 
       p.setup = () => {
