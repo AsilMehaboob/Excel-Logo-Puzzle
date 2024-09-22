@@ -19,7 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
-        <title>My Puzzle Game</title>
+        <title>Excel Logo Puzzle</title>
       </head>
       <body>
         {loading ? (

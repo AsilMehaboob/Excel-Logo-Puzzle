@@ -228,10 +228,10 @@ const Puzzle = () => {
           const pieceWidth = this.boxWidth / this.side;
           const pieceHeight = this.boxHeight / this.side;
           const manualPositions = [
-            p.createVector(this.x + pieceWidth * 0.909, this.y + pieceHeight * 0.750),
-            p.createVector(this.x + pieceWidth * 1.368, this.y + pieceHeight * 0.75),
-            p.createVector(this.x + pieceWidth * 0.800, this.y + pieceHeight * 1.25),
-            p.createVector(this.x + pieceWidth * 1.360, this.y + pieceHeight * 1.25),
+            p.createVector(this.x + pieceWidth * 0.860, this.y + pieceHeight * 0.7),
+            p.createVector(this.x + pieceWidth * 1.488, this.y + pieceHeight * 0.7),
+            p.createVector(this.x + pieceWidth * 0.710, this.y + pieceHeight * 1.4),
+            p.createVector(this.x + pieceWidth * 1.488, this.y + pieceHeight * 1.4),
           ];
         
           for (let i = 0; i < this.side * this.side; i++) {
@@ -258,8 +258,8 @@ const Puzzle = () => {
               img,
               i,
               correctPos,
-              scaledWidth: scaledWidth * 1,  // Adjust this value to increase the size
-              scaledHeight: scaledHeight * 1,  // Adjust this value to increase the size
+              scaledWidth: scaledWidth * 1.4,  // Adjust this value to increase the size
+              scaledHeight: scaledHeight * 1.4,  // Adjust this value to increase the size
               scale: 1,  // No need to scale for falling effect
               opacity: 0,  // Initial opacity
             };
@@ -599,7 +599,7 @@ const Puzzle = () => {
     {splitTextIntoLetters("Puzzle completed! You've uncovered the past—now brace yourself, the new logo will be revealed soon...")}
     </h1>
     <p className="mt-4 pt-7 text-right bottom-12 mr-5 text-3xl sm:text-xl font-semibold">
-      You solved it in <br/> <span className="text-[#FF5E79]">{formatTime(elapsedTime)}m</span>. Great job!
+      You solved it in <br/> <span className="text-[#FF5E79]">{formatTime(elapsedTime)}</span>. Great job!
     </p>
   </div>
 </div>
