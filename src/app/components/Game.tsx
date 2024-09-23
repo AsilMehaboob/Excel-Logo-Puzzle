@@ -6,6 +6,7 @@ import gsap from "gsap";
 import { motion, AnimatePresence } from 'framer-motion';
 import Timer from './Timer'; // Adjust the path based on your file structure
 import confetti from 'canvas-confetti'; // Import confetti
+import axios from "axios";
 
 interface Piece {
   pos: p5.Vector;
@@ -29,7 +30,8 @@ const Puzzle = () => {
   const [isRunning, setIsRunning] = useState(true); // Game running state
   const [isGameComplete, setIsGameComplete] = useState(false); // Game completion state
   const [elapsedTime, setElapsedTime] = useState(0); // Track time elapsed
-  const [isLoading, setIsLoading] = useState(true); // Add loading state
+  const [isLoading, setIsLoading] = useState(false); // Add loading state
+  let imagesLoaded = 0; // Track loaded images
 
   const handleTimeUpdate = (time: number) => {
     setElapsedTime(time); // Update elapsed time as timer runs
@@ -53,7 +55,19 @@ const Puzzle = () => {
       let images: p5.Image[] = [];
       let selectedImages: string[] = [];
       let customFont: p5.Font;
+      let assetsLoaded = false; // Track when all assets are loaded
 
+      
+      const generateRandomName = () => {
+        const names = ["PlayerOne", "Maverick", "Phoenix", "Rogue", "Ace"];
+        const randomIndex = Math.floor(Math.random() * names.length);
+        return names[randomIndex] + Math.floor(Math.random() * 1000);  // Random name with numbers
+      };
+      
+      // Function to generate a random time between 100 and 5000 (milliseconds or seconds based on your app)
+      const generateRandomTime = () => {
+        return Math.floor(Math.random() * (5000 - 100 + 1)) + 100;  // Random time between 100 and 5000
+      };
 
       const imageSets = {
         2023: [
@@ -109,39 +123,55 @@ const Puzzle = () => {
       
 
 
+      
       p.preload = () => {
-        const yearKeys = Object.keys(imageSets);
+        // Load font
         customFont = p.loadFont('/fonts/Satoshi-Regular.ttf');
+  
+        // Load all images
+        const yearKeys = Object.keys(imageSets);
         const randomYear = yearKeys[Math.floor(Math.random() * yearKeys.length)];
-        selectedImages = imageSets[randomYear as unknown as keyof typeof imageSets];
-        selectedImages.forEach((url) => {
-          images.push(p.loadImage(url));
-        });
-
-
+        const selectedImages = imageSets[randomYear as unknown as keyof typeof imageSets];
+        
+        const totalImages = selectedImages.length;
+        let loadedImages = 0;
+  
         selectedImages.forEach((url, index) => {
           images[index] = p.loadImage(url, () => {
-            if (images.length === selectedImages.length) {
-              setIsLoading(false); // All images are loaded
-              setIsTimerRunning(true); // Start the timer once everything is loaded
+            loadedImages++;
+            if (loadedImages === totalImages) {
+              assetsLoaded = true; // All assets are loaded
+              setIsLoading(false);  // Stop showing preloader
             }
           });
         });
       };
+  
+      
 
       p.setup = () => {
-        const canvasWidth = p.windowWidth;
-        const canvasHeight = p.windowHeight;
-
-        const canvas = p.createCanvas(canvasWidth, canvasHeight);
-        canvas.parent(canvasRef.current!);
-
-        const boxSize = Math.min(400, canvasWidth * 0.8, canvasHeight * 0.8);
-        const boxX = (canvasWidth - boxSize) / 2;
-        const boxY = (canvasHeight - boxSize) / 2;
-
-        puzzle = new PuzzleGame(boxX, boxY, boxSize, boxSize, images, 2); // 2x2 puzzle
+        if (assetsLoaded) {
+          const canvasWidth = p.windowWidth;
+          const canvasHeight = p.windowHeight;
+          const canvas = p.createCanvas(canvasWidth, canvasHeight);
+          canvas.parent(canvasRef.current!);
+  
+          const boxSize = Math.min(400, canvasWidth * 0.8, canvasHeight * 0.8);
+          const boxX = (canvasWidth - boxSize) / 2;
+          const boxY = (canvasHeight - boxSize) / 2;
+  
+          puzzle = new PuzzleGame(boxX, boxY, boxSize, boxSize, images, 2); // Create the puzzle
+          gsap.to(".fallingPieces", {
+            opacity: 1,
+            duration: 1.2,
+            ease: "power2.out",
+            onComplete: () => {
+              setIsTimerRunning(true); // Start timer after animation completes
+            }
+          });
+        }
       };
+  
 
       p.draw = () => {
         p.clear();
@@ -470,9 +500,21 @@ const Puzzle = () => {
               // Stop the timer
               setIsTimerRunning(false);
             
-              // Capture the final time when the puzzle is completed
-              const finalTime = timeElapsed;  // Ensure this is correctly tracked in your Timer component
-              setTimeElapsed(finalTime);      // Store the final time, which will be passed to the modal
+              // Use random values for the POST request
+              const randomName = generateRandomName();
+              const randomTime = generateRandomTime();
+            
+              // Send POST request to the API with random parameters
+              axios.post('https://excel-puzzle-449482785848.asia-south1.run.app/api/v1', {
+                name: randomName,
+                time: randomTime
+              })
+              .then(response => {
+                console.log("Data sent successfully with random values:", response.data);
+              })
+              .catch(error => {
+                console.error("Error sending data:", error);
+              });
             
               if (!isConfettiLaunched) {
                 setIsConfettiLaunched(true);
@@ -489,6 +531,7 @@ const Puzzle = () => {
                   setShowModal(true); // Show modal after animation
                 },
               });
+            
             
               this.pieces.forEach((piece, i) => {
                 const targetY = p.windowHeight + piece.scaledHeight * 2;
@@ -529,8 +572,13 @@ const Puzzle = () => {
         }
 
         private isComplete() {
-          return this.pieces.every((p) => p.pos.equals(p.correctPos));
-        }
+          const isPuzzleComplete = this.pieces.every((p) => p.pos.equals(p.correctPos));
+      
+          
+              
+      
+          return isPuzzleComplete;
+      }
       }
     };
 
@@ -576,6 +624,12 @@ const Puzzle = () => {
     ));
   };
   
+  useEffect(() => {
+    if (!isLoading) {
+      setIsTimerRunning(true); // Timer starts when loading is complete
+    }
+  }, [isLoading]);
+  
   
   
   return (
@@ -607,6 +661,7 @@ const Puzzle = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
     </div>
   );
 
