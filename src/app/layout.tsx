@@ -4,6 +4,10 @@ import Preloader from '../app/components/Preloader'; // Adjust the path if neces
 import './globals.css';
 import 'aos/dist/aos.css'; // AOS styles
 
+
+
+
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
@@ -20,6 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <head>
         <title>Excel Logo Puzzle</title>
+        <link rel="icon" href="/excel.ico" />
       </head>
       <body>
         {loading ? (

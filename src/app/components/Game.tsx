@@ -652,7 +652,7 @@ const Puzzle = () => {
     <h1 className="text-3xl mr-14 font-satoshi text-left ml-8 top-6 mr sm:text-4xl md:text-5xl font-bold mb-4 leading-snug">
     {splitTextIntoLetters("Puzzle completed! You've uncovered the past—now brace yourself, the new logo will be revealed soon...")}
     </h1>
-    <p className="mt-4 pt-7 text-right bottom-12 mr-5 text-3xl sm:text-xl font-semibold">
+    <p className="mt-4 pt-7 text-right font-satoshi bottom-12 mr-5 text-3xl sm:text-xl font-semibold">
       You solved it in <br/> <span className="text-[#FF5E79]">{formatTime(elapsedTime)}</span>. Great job!
     </p>
   </div>
